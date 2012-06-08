@@ -9,30 +9,21 @@ object CommandParsers {
   import Parser._
 
   /**
-   * Constructs a parser for short flag notation.
+   * Constructs a parser for a flag
    */
-  def short(s: Char) = is("-" + s)
-
-  /**
-   * Constructs a parser for long flag notation
-   */
-  def long(l: String) = is("--" + l)
-
-  /**
-   * Constructs a parser for either short or long notation.
-   */
-  def both(s: Char, l: String) = short(s) | long(l)
+  def decl(decls: List[Decl]): Parser[String] =
+    decls.foldMap(_.fold(
+      c => is("-" + c),
+      s => is("--" + s)
+    ))
 
   /**
    * Constructs a parser for a single flag.
    */
-  def flag[A](f: Flag[A]): Parser[A => A] = f.fold(
-    (s, l, d, f) => both(s, l) map (_ => f),
-    (s, d, f) => short(s) map (_ => f),
-    (l, d, f) => long(l) map (_ => f),
-    (s, l, d, m, f) => (both(s, l) >> string) map (v => f(_, v)),
-    (s, d, m, f) => (short(s) >> string) map (v => f(_, v)),
-    (l, d, m, f) =>  (long(l) >> string) map (v => f(_, v))
+  def flag[A](f: Flag[A]): Parser[A => Either[String, A]] = f.fold(
+    (decls, _, f) => decl(decls) map (_ => x => f(x, ())),
+    (decls, _, _, f) => (decl(decls) >> string) map (v => f(_, v)),
+    (decls, _, _, f) => (decl(decls) >> string) map (v => f(_, Some(v))) // FIX not optionally
   )
 
   /**
@@ -81,5 +72,6 @@ object CommandParsers {
    * parameters.
    */
   def commandline[A](f: Flags[A], p: Positionals[A]) =
-    flags(f).lift2(positionals(p))(_:::_).map(_.foldRight(identity[A]_)(_ compose _))
+//    flags(f).lift2(positionals(p))(_:::_).map(_.foldRight(identity[A]_)(_ compose _))
+    error("todo")
 }
