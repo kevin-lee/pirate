@@ -35,3 +35,8 @@ sealed trait Mode[A, B] {
 
 private case class RunnableMode[A, B](flags: Flags[A], positionals: Positionals[A], f: A => B) extends Mode[A, B]
 private case class SuperMode[A, B](flags: Flags[A], command: Command[A, B]) extends Mode[A, B]
+
+object Mode {
+  def mode[A]: Mode[A, A] =
+    RunnableMode[A, A](Flags.emptyflags, Positionals.emptypositionals, a => a)
+}

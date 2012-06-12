@@ -21,9 +21,9 @@ object CommandParsers {
    * Constructs a parser for a single flag.
    */
   def flag[A](f: Flag[A]): Parser[A => Either[String, A]] = f.fold(
-    (decls, _, f) => decl(decls) map (_ => x => f(x, ())),
-    (decls, _, _, f) => (decl(decls) >> string) map (v => f(_, v)),
-    (decls, _, _, f) => (decl(decls) >> string) map (v => f(_, Some(v))) // FIX not optionally
+    (decls, _, _, f) => decl(decls) map (_ => x => f(x, ())),
+    (decls, _, _, _, f) => (decl(decls) >> string) map (v => f(_, v)),
+    (decls, _, _, _, f) => (decl(decls) >> string) map (v => f(_, Some(v))) // FIX not optionally
   )
 
   /**
@@ -73,5 +73,8 @@ object CommandParsers {
    */
   def commandline[A](f: Flags[A], p: Positionals[A]) =
 //    flags(f).lift2(positionals(p))(_:::_).map(_.foldRight(identity[A]_)(_ compose _))
+    error("todo")
+
+  def command[A, B](f: Command[A, B]): Parser[A => B] =
     error("todo")
 }

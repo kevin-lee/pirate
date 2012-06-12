@@ -2,6 +2,12 @@ package io.mth.pirate
 
 import Update._
 
+sealed trait Occurrence
+case object Once extends Occurrence
+case object MaybeOnce extends Occurrence
+case object Many
+case object MaybeMany extends Occurrence
+
 /**
  * Flag data type. Can represent one of:
  *  - flag with short and long identifier, and no argument
@@ -24,13 +30,13 @@ sealed trait Flag[A] {
    * Catamorphism for the Flag data type.
    */
   def fold[X](
-    s: (List[Decl], String, Update[A, Unit]) => X,
-    m: (List[Decl], String, String, Update[A, String]) => X,
-    o: (List[Decl], String, String, Update[A, Option[String]]) => X
+    s: (List[Decl], String, Occurrence, Update[A, Unit]) => X,
+    m: (List[Decl], String, String, Occurrence, Update[A, String]) => X,
+    o: (List[Decl], String, String, Occurrence, Update[A, Option[String]]) => X
   ): X = this match {
-    case Switch(decls, description, update) => s(decls, description, update)
-    case MandatoryFlag(decls, meta, description, update) => m(decls, meta, description, update)
-    case OptionalFlag(decls, meta, description, update) => o(decls, meta, description, update)
+    case Switch(decls, description, occ, update) => s(decls, description, occ, update)
+    case FlagArg(decls, meta, description, occ, update) => m(decls, meta, description, occ, update)
+    case FlagOptArg(decls, meta, description, occ, update) => o(decls, meta, description, occ, update)
   }
 
   /**
@@ -49,51 +55,58 @@ sealed trait Flag[A] {
    * The description for this flag.
    */
   def description = fold(
-    (_, d, _) => d,
-    (_, _, d, _) => d,
-    (_, _, d, _) => d
+    (_, d, _, _) => d,
+    (_, _, d, _, _) => d,
+    (_, _, d, _, _) => d
   )
+
+  def declarations = fold(
+    (x, _, _, _) => x,
+    (x, _, _, _, _) => x,
+    (x, _, _, _, _) => x
+  )
+
 }
 
-private case class Switch[A](decls: List[Decl], desc: String, update: Update[A, Unit]) extends Flag[A]
-private case class MandatoryFlag[A](decls: List[Decl], meta: String, desc: String, update: Update[A, String]) extends Flag[A]
-private case class OptionalFlag[A](decls: List[Decl], meta: String, desc: String, update: Update[A, Option[String]]) extends Flag[A]
+private case class Switch[A](decls: List[Decl], desc: String, occurrence: Occurrence, update: Update[A, Unit]) extends Flag[A]
+private case class FlagArg[A](decls: List[Decl], meta: String, desc: String, occurrence: Occurrence, update: Update[A, String]) extends Flag[A]
+private case class FlagOptArg[A](decls: List[Decl], meta: String, desc: String, occurrence: Occurrence, update: Update[A, Option[String]]) extends Flag[A]
 
 object Flag {
   /**
    *  Type constructor for a Flag with only a short identifier, and no argument.
    */
   def short[A](short: Char, desc: String)(f: A => A): Flag[A] =
-    Switch(Decl.short(short) :: Nil, desc, (a, _) => Right(f(a)))
+    Switch(Decl.short(short) :: Nil, desc, MaybeMany, (a, _) => Right(f(a)))
 
   /**
    * Type constructor for a Flag with only a long identifier, and no argument.
    */
   def long[A](long: String, desc: String)(f: A => A): Flag[A] =
-    Switch(Decl.long(long) :: Nil, desc, (a, _) => Right(f(a)))
+    Switch(Decl.long(long) :: Nil, desc, MaybeMany, (a, _) => Right(f(a)))
 
   /**
    * Type constructor for a Flag with both a short and long identifier, and no argument.
    */
   def flag[A](short: Char, long: String, desc: String)(f: A => A): Flag[A] =
-    Switch(Decl.short(short) :: Decl.long(long) :: Nil, desc, (a, _) => Right(f(a)))
+    Switch(Decl.short(short) :: Decl.long(long) :: Nil, desc, MaybeMany, (a, _) => Right(f(a)))
 
   /**
    * Type constructor for a Flag with only a short identifier, and with an argument.
    */
   def short1[A](short: Char, desc: String, meta: String)(f: (A, String) => A): Flag[A] =
-    MandatoryFlag(Decl.short(short) :: Nil, meta, desc, (a, s) => Right(f(a, s)))
+    FlagArg(Decl.short(short) :: Nil, meta, desc, MaybeMany, (a, s) => Right(f(a, s)))
 
   /**
    * Type constructor for a Flag with only a long identifier, and with an argument.
    */
   def long1[A](long: String, desc: String, meta: String)(f: (A, String) => A): Flag[A] =
-    MandatoryFlag(Decl.long(long) :: Nil, meta, desc, (a, s) => Right(f(a, s)))
+    FlagArg(Decl.long(long) :: Nil, meta, desc, MaybeMany, (a, s) => Right(f(a, s)))
 
   /**
    * Type constructor for a Flag with both a long and short identifier, and with an argument.
    */
   def flag1[A](short: Char, long: String, desc: String, meta: String)(f: (A, String) => A): Flag[A] =
-    MandatoryFlag(Decl.short(short) :: Decl.long(long) :: Nil, meta, desc, (a, s) => Right(f(a, s)))
+    FlagArg(Decl.short(short) :: Decl.long(long) :: Nil, meta, desc, MaybeMany, (a, s) => Right(f(a, s)))
 }
 

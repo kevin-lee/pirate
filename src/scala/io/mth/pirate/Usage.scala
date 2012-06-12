@@ -27,7 +27,7 @@ object Usage {
 
     def flaguse[A](f: Flag[A]): String =
       f.fold(
-        (decls, _, _) => decls.sortWith((a, b) =>
+        (decls, _, _, _) => decls.sortWith((a, b) =>
           a.fold(
             c => b.fold(c < _, _ => true),
             s => b.fold(_ => false, s < _)
@@ -35,7 +35,7 @@ object Usage {
             c => "-" + c,
             s => "--" + s
           )).mkString(","),
-        (decls, m, _, _) => decls.sortWith((a, b) =>
+        (decls, m, _, _, _) => decls.sortWith((a, b) =>
           a.fold(
             c => b.fold(c < _, _ => true),
             s => b.fold(_ => false, s < _)
@@ -43,7 +43,7 @@ object Usage {
             c => "-" + c,
             s => "--" + s
           )).mkString(",") + "=" + m,
-        (decls, m, _, _) => decls.sortWith((a, b) =>
+        (decls, m, _, _, _) => decls.sortWith((a, b) =>
           a.fold(
             c => b.fold(c < _, _ => true),
             s => b.fold(_ => false, s < _)
@@ -54,7 +54,7 @@ object Usage {
 
     def flagsynopsis[A](f: Flag[A]): String =
       f.fold(
-        (decls, _, _) => "[" + decls.sortWith((a, b) =>
+        (decls, _, _, _) => "[" + decls.sortWith((a, b) =>
           a.fold(
             c => b.fold(c < _, _ => true),
             s => b.fold(_ => false, s < _)
@@ -62,7 +62,7 @@ object Usage {
             c => "-" + c,
             s => "--" + s
           )).mkString("|") + "]",
-        (decls, m, _, _) => "[" + decls.sortWith((a, b) =>
+        (decls, m, _, _, _) => "[" + decls.sortWith((a, b) =>
           a.fold(
             c => b.fold(c < _, _ => true),
             s => b.fold(_ => false, s < _)
@@ -70,7 +70,7 @@ object Usage {
             c => "-" + c,
             s => "--" + s
           )).mkString("|") + " " + m + "]",
-        (decls, m, _, _) => "[" + decls.sortWith((a, b) =>
+        (decls, m, _, _, _) => "[" + decls.sortWith((a, b) =>
           a.fold(
             c => b.fold(c < _, _ => true),
             s => b.fold(_ => false, s < _)

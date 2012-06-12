@@ -33,6 +33,22 @@ sealed trait Positional[A] {
   def >|(p: Positional[A]): Positionals[A] = toPositionals >| p
 
 
+  def isFixed =
+    fold(
+      (_, _) => true,
+      (_, _, _) => true,
+      (_, _) => false,
+      (_, _) => false
+    )
+
+  def weight =
+    fold(
+      (_, _) => 1,
+      (n, _, _) => n,
+      (_, _) => 0,
+      (_, _) => 1
+    )
+
   /**
    * Convert this Positional into a Positionals.
    */

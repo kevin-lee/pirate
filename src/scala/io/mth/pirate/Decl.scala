@@ -1,6 +1,9 @@
 package io.mth.pirate
 
 sealed trait Decl {
+  def form =
+    fold("-" + _, "--" + _)
+
   def fold[X](
     short: Char => X,
     long: String => X

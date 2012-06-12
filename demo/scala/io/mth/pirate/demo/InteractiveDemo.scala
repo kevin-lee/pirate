@@ -4,15 +4,17 @@ import scalaz.{Failure, Success}
 
 object InteractiveDemo {
   import io.mth.pirate._
-  
+
   case class DemoArgs(help: Boolean, version: Boolean, verbose: Boolean, things: List[String])
 
-  val cmd =
-    command[DemoArgs]("demo") <|>
+  val basemode = mode[DemoArgs] <|>
       flag('h', "help", "display usage.")(_.copy(help = true)) <|>
       flag('V', "version", "display version.")(_.copy(version = true)) <|>
-      flag('v', "verbose", "verbose output.")(_.copy(verbose = true)) >|
+      flag('v', "verbose", "verbose output, this has a really long description to demonstrate wrapping.")(_.copy(verbose = true)) >|
       positional0plus("THINGS")((d, ss) => d.copy(things = ss))
+
+  val cmd =
+    commandline("demo", "", basemode :: Nil)
 
   val program =
     cmd ~ """
@@ -33,12 +35,10 @@ object InteractiveDemo {
     println(output)
   }
 
-  def main(ignored: Array[String]) {
-    val args = List("--verbose", "thing.one", "thing.two", "cat", "hat")
-
+  def main(args: Array[String]) {
     val default = DemoArgs(false, false, false, List())
 
-    val exitcode = cmd.dispatchOrUsage(args, default)(run _)
+    val exitcode = cmd.dispatchOrUsage(args.toList, default)(run _)
 
     exit(exitcode)
   }

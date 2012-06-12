@@ -1,6 +1,7 @@
 package io.mth.pirate
 
 import java.io.PrintStream
+import Processor.{Succeed, Fail}
 
 
 /**
@@ -41,44 +42,34 @@ sealed trait Command[A, B] {
   def usageForMode(mode: UsageMode) = Usage.usage(mode)(this)
 
   /**
-   * Create an argument parser for this command. This is for advanced
-   * usage only. It is expected that the `parse` method is sufficient
-   * for most cases.
-   */
-  def toParser: Parser[A => A] =
-    sys.error("todo")
-
-  /**
    * Parse a list of arguments based on this command and apply the resultant
    * function to the data object.
    */
-  def parse(args: List[String], default: A): Validation[String, A] =
-    toParser.parse(args) match {
-      case Success((rest, f)) =>
-        if (rest.isEmpty) Success(f(default))
-        else Failure("Too many arguments / Arguments could not be parsed: " + rest)
-      case Failure(msg) => Failure(msg)
+  def parse(args: List[String], default: A): Validation[String, B] =
+    Processor.process(this, default, args) match {
+      case Fail(msg) => Failure(msg)
+      case Succeed(b) => Success(b)
     }
 
   /**
    * Higher order function to handle parse and dispatch. This is
    * a convenience only.
    */
-  def dispatchOrUsage(args: List[String], default: A, err: PrintStream = System.err)(f: A => Unit): Int =
+  def dispatchOrUsage(args: List[String], default: A, err: PrintStream = System.err)(f: B => Unit): Int =
     dispatch(args, default)(f)(msg => err.println(msg + "\n\n" + usage))
 
   /**
    * Higher order function to handle parse and dispatch. This is
    * a convenience only.
    */
-  def dispatchOrDie(args: List[String], default: A, err: PrintStream = System.err)(f: A => Unit): Unit =
+  def dispatchOrDie(args: List[String], default: A, err: PrintStream = System.err)(f: B => Unit): Unit =
     sys.exit(dispatchOrUsage(args, default)(f))
 
   /**
    * Higher order function to handle parse and dispatch. This is
    * a convenience only.
    */
-  def dispatch(args: List[String], default: A)(success: A => Unit)(error: String => Unit): Int =
+  def dispatch(args: List[String], default: A)(success: B => Unit)(error: String => Unit): Int =
     parse(args, default) match {
       case Success(applied) => success(applied); 0
       case Failure(msg) => error(msg); 1

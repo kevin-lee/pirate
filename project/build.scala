@@ -44,4 +44,26 @@ object build extends Build {
       )
     )
   )
+
+  val demo = Project(
+    id = "pirate-demo"
+  , base = file("demo")
+  , settings = Defaults.defaultSettings ++ Seq[Sett](
+      name := "pirate-demo"
+    , organization := "io.mth"
+    , scalaVersion := "2.9.2"
+    , scalacOptions := Seq(
+        "-deprecation"
+      , "-unchecked"
+      )
+    , sourceDirectory in Compile <<= baseDirectory { b => b }
+    , historyPath <<= baseDirectory { b => Some(b / "../gen/sbt/.history") }
+    , target <<= baseDirectory { _ / "../gen/sbt/target-demo" }
+    , testOptions in Test += Tests.Setup(() => System.setProperty("specs2.outDir", "gen/sbt/target-demo/specs2-reports"))
+    , publishSetting
+    , libraryDependencies ++= Seq(
+      )
+    )
+  ) dependsOn (pirate)
+
 }
