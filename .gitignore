@@ -1,5 +1,6 @@
 /gen
 /project/target
+/project/project
 /dist
 /dependency
 /scratch
