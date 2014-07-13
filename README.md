@@ -1,6 +1,8 @@
 NAME
         pirate - command line 'arrrrg processor
 
+[![Build Status](https://travis-ci.org/charleso/pirate.png)](https://travis-ci.org/charleso/pirate)
+
 DESCRIPTION
         Pirate is a functional scala library that provides a mechanism for
         parsing command line arguments and producing usage strings.
