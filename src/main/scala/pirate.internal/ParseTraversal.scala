@@ -22,7 +22,7 @@ object ParseTraversal {
     })
 
   def errorP[A](e: ParseError): P[A] =
-    EitherT.left(e.pure[PWR])
+    EitherT.leftT(e.pure[PWR])
 
   def hoistDisjunction[A](o: ParseTree[Info] \/ A): P[A] =
     o.fold(es => errorP(ParseErrorMissing(es)), a => a.pure[P])
@@ -120,8 +120,8 @@ object ParseTraversal {
     case CommandParser(sub) =>
       if (sub.name === arg)
         StateT[P, List[String], A](args => for {
-          _ <- EitherT.right[PWR,ParseError,Unit](().pure[PWR].<++:(arg :: Nil))
-          prefs <- EitherT.right[PWR,ParseError,Prefs](WriterT[PR, List[String], Prefs](Reader(p => (nil -> p))))
+          _ <- EitherT.rightT[PWR,ParseError,Unit](().pure[PWR].<++:(arg :: Nil))
+          prefs <- EitherT.rightT[PWR,ParseError,Prefs](WriterT[PR, List[String], Prefs](Reader(p => (nil -> p))))
           x <- if (prefs.backtrack)
             runParser(SkipOpts, sub.parse, args).map(_.swap)
           else
