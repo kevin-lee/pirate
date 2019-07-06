@@ -5,6 +5,9 @@ import scalaz._, Scalaz._, effect.IO
 
 import java.io.File
 
+import hedgehog._
+import hedgehog.runner.{example => exampleTest, _}
+
 case class Git(
   cwd: Option[String],
   conf: Option[String],
@@ -70,66 +73,58 @@ object GitMain extends PirateMainIO[Git] {
   }
 }
 
-class GitExample extends spec.Spec { def is = s2"""
+object GitExample extends Properties {
 
-  Git Examples
-  ============
-
-  git --version                            $version
-  git --help                               $help
-  git --help text                          $helpText
-  git --help add                           $helpAdd
-  git add                                  $helpContext
-  git --help add text                      $helpAddText
-  git add files                            $gitAdd
-  git rm --dry-run file                    $gitRm
-
-  Git Checks
-  ==========
-
-  Name is set                              ${GitMain.command.name == "git"}
-  Description is set                       ${GitMain.command.description == Some("This is a demo of the git command line")}
-
-"""
+  override def tests: List[Test] = List(
+      //  Git Examples
+      exampleTest("git --version", version)
+    , exampleTest("git --help", help)
+    , exampleTest("git --help text", helpText)
+    , exampleTest("git --help add", helpAdd)
+    , exampleTest("git add", helpContext)
+    , exampleTest("git --help add text", helpAddText)
+    , exampleTest("git add files", gitAdd)
+    , exampleTest("git rm --dry-run file", gitRm)
+    //  Git Checks
+    , exampleTest("Name is set", GitMain.command.name ==== "git")
+    , exampleTest("Description is set", GitMain.command.description ==== Some("This is a demo of the git command line"))
+  )
 
   def run(args: String*): (List[String], ParseError \/ Git) =
     Interpreter.run(GitMain.command.parse, args.toList, DefaultPrefs())
 
-  def version = {
-    run("-c", "thing", "--version") must_==
+  def version: Result =
+    run("-c", "thing", "--version") ====
       Nil -> Git(None, Some("thing"), None, GitVersion).right
-  }
 
-  def help = {
-    run("-c", "thing", "--help") must_==
+  def help: Result =
+    run("-c", "thing", "--help") ====
       Nil -> ParseErrorShowHelpText(None).left
-  }
 
-  def helpContext = {
-    run("--help", "add") must_==
+  def helpContext: Result =
+    run("--help", "add") ====
       Nil -> ParseErrorShowHelpText(Some("add")).left
-  }
 
-  def helpAdd = {
-    run("add", "--help") must_==
+  def helpAdd: Result =
+    run("add", "--help") ====
       List("add") -> ParseErrorShowHelpText(None).left
-  }
 
-  def helpText = {
-    Usage.print(GitMain.command, Nil, DefaultPrefs()) must_== ""
-  }.pendingUntilFixed
+  // FIXME:
+  def helpText: Result =
+    Result.assert(Usage.print(GitMain.command, Nil, DefaultPrefs()) != "")
+      .log("FIXME: This works now so please fix the test.")
 
-  def helpAddText = {
-    Usage.print(GitMain.command, List("add"), DefaultPrefs()) must_== ""
-  }.pendingUntilFixed
+  // FIXME:
+  def helpAddText: Result =
+    Result.assert(Usage.print(GitMain.command, List("add"), DefaultPrefs()) != "")
+      .log("FIXME: This works now so please fix the test.")
 
-  def gitAdd = {
-    run("add", "one", "two", "three", "-f", "--interactive") must_==
+  def gitAdd: Result =
+    run("add", "one", "two", "three", "-f", "--interactive") ====
       List("add") -> Git(None, None, None, GitAdd(true, true, false, false, List(new File("one"), new File("two"), new File("three")))).right
-  }
 
-  def gitRm = {
-    run("rm", "--dry-run", "file", "-c", "thing") must_==
+  def gitRm: Result =
+    run("rm", "--dry-run", "file", "-c", "thing") ====
       List("rm") -> Git(None, Some("thing"), None, GitRm(false, true, false, false, List(new File("file")))).right
-  }
+
 }

@@ -1,27 +1,43 @@
 package pirate
 
-class ParseSpec extends spec.Spec { def is = s2"""
+import hedgehog._
+import hedgehog.runner._
 
-  Parse Properties
-  ================
+import pirate.spec.Gens
 
-  Verify basic name pass-through to command                $name
-  Verify description not set on command                    $desc
-  Verify description can be set on command                 $descSet
-  Verify name and description can be set on command        $nameAndDescSet
+object ParseSpec extends Properties {
 
-"""
-  def name = prop((n: String) =>
-    (ValueParse(None) ~ n).name == n)
+  override def tests: List[Test] = List(
+      property("Verify basic name pass-through to command", name)
+    , property("Verify description not set on command", desc)
+    , property("Verify description can be set on command", descSet)
+    , property("Verify name and description can be set on command", nameAndDescSet)
+    )
 
-  def desc = prop((n: String) =>
-    (ValueParse(None) ~ n).description === None)
+  def name: Property = for {
+    n <- Gens.genUnicodeString(0, 50).log("n")
+  } yield {
+    (ValueParse(None) ~ n).name ==== n
+  }
 
-  def descSet = prop((n: (String, String)) =>
-    (ValueParse(None) ~ n._1 ~~ n._2).description === Some(n._2))
+  def desc: Property = for {
+    n <- Gens.genUnicodeString(0, 50).log("n")
+  } yield {
+    (ValueParse(None) ~ n).description ==== None
+  }
 
-  def nameAndDescSet = prop((n: (String, String)) => {
-   val parse = ValueParse(None) ~ n._1 ~~ n._2
-   parse.name === n._1 && parse.description === Some(n._2)
-  })
+  def descSet: Property = for {
+      n1 <- Gens.genUnicodeString(0, 50).log("n1")
+      n2 <- Gens.genUnicodeString(0, 50).log("n2")
+    } yield {
+      (ValueParse(None) ~ n1 ~~ n2).description ==== Some(n2)
+    }
+
+  def nameAndDescSet: Property = for {
+    n1 <- Gens.genUnicodeString(0, 50).log("n1")
+    n2 <- Gens.genUnicodeString(0, 50).log("n2")
+  } yield {
+   val parse = ValueParse(None) ~ n1 ~~ n2
+   parse.name ==== n1 and parse.description ==== Some(n2)
+  }
 }

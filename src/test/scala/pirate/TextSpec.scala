@@ -1,40 +1,75 @@
 package pirate
 
-import pirate.spec.Arbitraries._
+import hedgehog._
+import hedgehog.runner._
 
-class TextSpec extends spec.Spec { def is = s2"""
+import pirate.spec.Gens
 
-  Text Properties
-  ===============
+object TextSpec extends Properties {
 
-  all spaces                                      $spaces
-  correct length                                  $length
-  wrap no longer than width                       $width
-  wrap no longer than width + indent              $indent
-  handle negative widths                          $negativeWidth
-  never lose content                              $safe
-  text with new lines has proper gutter           $gutter
-
-"""
+  override def tests: List[Test] = List(
+      property("all spaces", spaces)
+    , property("correct length", length)
+    , property("wrap no longer than width", width)
+    , property("wrap no longer than width + indent", indent)
+    , property("handle negative widths", negativeWidth)
+    , property("never lose content", safe)
+    , property("text with new lines has proper gutter", gutter)
+    )
 
   import Text._
 
-  def spaces = prop((n: SmallInt) => space(n.value).forall(_ == ' '))
+  def spaces: Property = for {
+    n <- Gens.genSmallInt.log("n")
+  } yield {
+    space(n.value).forall(_ == ' ') ==== true
+  }
 
-  def length = prop((n: SmallInt) => space(n.value).length == n.value)
+  def length: Property = for {
+    n <- Gens.genSmallInt.log("n")
+  } yield {
+    space(n.value).length ==== n.value
+  }
 
-  def width = prop((l: LongLine) => wrap("", 0)(l.value, 80, 0).split('\n').forall(_.length <= 80))
+  def width: Property = for {
+    l <- Gens.genLongLine.log("l")
+  } yield {
+    wrap("", 0)(l.value, 80, 0)
+      .split('\n')
+      .forall(_.length <= 80) ==== true
+  }
 
-  def indent = prop((l: LongLine) => wrap("", 0)(l.value, 80, 10).split('\n').forall(_.length <= 90))
+  def indent: Property = for {
+    l <- Gens.genLongLine.log("l")
+  } yield {
+    wrap("", 0)(l.value, 80, 10)
+      .split('\n')
+      .forall(_.length <= 90) ==== true
+  }
 
-  def negativeWidth = prop((l: LongLine, s: SmallInt) =>
-    wrap("", 0)(l.value, 50 - s.value, 10).split('\n').forall(_.length <= 90)
-  )
+  def negativeWidth: Property = for {
+    l <- Gens.genLongLine.log("l")
+    s <- Gens.genSmallInt.log("s")
+  } yield {
+    wrap("", 0)(l.value, 50 - s.value, 10)
+      .split('\n')
+      .forall(_.length <= 90) ==== true
+  }
 
-  def safe = prop((l: LongLine) => drains(l.value.trim, wrap("", 0)(l.value, 80, 5)))
+  def safe: Property = for {
+    l <- Gens.genLongLine.log("l")
+  } yield {
+    drains(l.value.trim, wrap("", 0)(l.value, 80, 5)) ==== true
+  }
 
-  def gutter = prop((ls: (List5[LongLine])) =>
-    wrap("", 0)(ls.value.map(_.value).mkString("\n"), 80, 10).split('\n').map(_.take(10)).mkString("").trim ==== "")
+  def gutter: Property = for {
+    ls <- Gens.genList5(Gens.genLongLine).log("ls")
+  } yield {
+    wrap("", 0)(ls.value.map(_.value).mkString("\n"), 80, 10)
+      .split('\n')
+      .map(_.take(10))
+      .mkString("").trim ==== ""
+  }
 
   def drains(orig: String, modded: String): Boolean = {
     var i = 0

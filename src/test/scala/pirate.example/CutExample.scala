@@ -4,6 +4,9 @@ import pirate._, Pirate._
 import scalaz._, Scalaz._, effect.IO
 import java.io.File
 
+import hedgehog._
+import hedgehog.runner.{example => exampleTest, _}
+
 sealed trait Cut
 case class ByteCut(list: String, split: Boolean, files: List[File]) extends Cut
 case class CharCut(list: String, files: List[File]) extends Cut
@@ -49,69 +52,64 @@ object CutMain extends PirateMainIO[Cut] {
   }
 }
 
-class CutExample extends spec.Spec { def is = s2"""
+object CutExample extends Properties {
 
-  Cut Examples
-  ============
-
-  cat -b 1 one                             $byte
-  cut -b 2 -n two                          $noSplit
-  cut -c 3 three                           $char
-  cut -f 4 four                            $field
-  cut -f 5 -s five                         $supress
-  cut -f 6 -d x six                        $delim
-  cut -f 7 -d x -s seven                   $delimSupress
-  cut -f 7 -s -d x seven                   $supressDelim
-  cut -b 1 many files                      $manyFiles
-  cut with invalid args fails              $invalid
-
-  Cut Checks
-  ==========
-
-  Name is set                              ${CutMain.command.name === "cut"}
-  Description is set                       ${CutMain.command.description === Some("This is a demo of the unix cut utility")}
-
-"""
+  override def tests: List[Test] = List(
+      //  Cut Examples
+      exampleTest("cat -b 1 one", byte)
+    , exampleTest("cut -b 2 -n two", noSplit)
+    , exampleTest("cut -c 3 three", char)
+    , exampleTest("cut -f 4 four", field)
+    , exampleTest("cut -f 5 -s five", supress)
+    , exampleTest("cut -f 6 -d x six", delim)
+    , exampleTest("cut -f 7 -d x -s seven", delimSupress)
+    , exampleTest("cut -f 7 -s -d x seven", supressDelim)
+    , exampleTest("cut -b 1 many files", manyFiles)
+    , exampleTest("cut with invalid args fails", invalid)
+    //  Cut Checks
+    , exampleTest("Name is set", CutMain.command.name ==== "cut")
+    , exampleTest("Description is set", CutMain.command.description ==== Some("This is a demo of the unix cut utility"))
+  )
 
   def run(args: String*): ParseError \/ Cut =
     Interpreter.run(CutMain.command.parse, args.toList, DefaultPrefs())._2
 
-  def byte =
-    run("-b", "1", "one") must_==
+  def byte: Result =
+    run("-b", "1", "one") ====
       ByteCut("1", true, new File("one").pure[List]).right
 
-  def noSplit =
-    run("-b", "2", "-n", "two") must_==
+  def noSplit: Result =
+    run("-b", "2", "-n", "two") ====
       ByteCut("2", false, new File("two").pure[List]).right
 
-  def char =
-    run("-c", "3", "three") must_==
+  def char: Result =
+    run("-c", "3", "three") ====
       CharCut("3", new File("three").pure[List]).right
 
-  def field =
-    run("-f", "4", "four") must_==
+  def field: Result =
+    run("-f", "4", "four") ====
       FieldCut("4", false, '\t', new File("four").pure[List]).right
 
-  def supress =
-    run("-f", "5", "-s", "five") must_==
+  def supress: Result =
+    run("-f", "5", "-s", "five") ====
       FieldCut("5", true, '\t', new File("five").pure[List]).right
 
-  def delim =
-    run("-f", "6", "-d", "x", "six") must_==
+  def delim: Result =
+    run("-f", "6", "-d", "x", "six") ====
       FieldCut("6", false, 'x', new File("six").pure[List]).right
 
-  def delimSupress =
-    run("-f", "7", "-d", "x", "-s", "seven") must_==
+  def delimSupress: Result =
+    run("-f", "7", "-d", "x", "-s", "seven") ====
       FieldCut("7", true, 'x', new File("seven").pure[List]).right
 
-  def supressDelim =
-    run("-f", "8", "-s", "-d", "x", "eight") must_==
+  def supressDelim: Result =
+    run("-f", "8", "-s", "-d", "x", "eight") ====
       FieldCut("8", true, 'x', new File("eight").pure[List]).right
 
-  def manyFiles = 
-    run("-b", "1", "many", "files") must_==
+  def manyFiles: Result =
+    run("-b", "1", "many", "files") ====
       ByteCut("1", true, List(new File("many"), new File("files"))).right
 
-  def invalid =
-    Interpreter.run(CutMain.command.parse, nil, DefaultPrefs())._2.toEither must beLeft
+  def invalid: Result =
+    Result.assert(Interpreter.run(CutMain.command.parse, nil, DefaultPrefs())._2.toEither.isLeft)
 }
