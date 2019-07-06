@@ -87,22 +87,22 @@ object Laws {
   }
 
   object functor {
-    def identity[F[_], X](genFX: Gen[F[X]])(implicit F: Functor[F], ef: Equal[F[X]]): Property = for {
-      fa <- genFX.log("fa")
+    def identity[F[_], A](genFA: Gen[F[A]])(implicit F: Functor[F], ef: Equal[F[A]]): Property = for {
+      fa <- genFA.log("fa")
     } yield {
-      F.functorLaw.identity[X](fa) ==== true
+      F.functorLaw.identity[A](fa) ==== true
     }
 
-    def composite[F[_], X, Y, Z](
-      genFX: Gen[F[X]], genXY: Gen[X => Y], genYZ: Gen[Y => Z]
+    def composite[F[_], A, B, C](
+      genFA: Gen[F[A]], genAB: Gen[A => B], genBC: Gen[B => C]
     )(
-      implicit F: Functor[F], ef: Equal[F[Z]]
+      implicit F: Functor[F], ef: Equal[F[C]]
     ): Property = for {
-      fa <- genFX.log("fa")
-      ab <- genXY.log("ab")
-      bc <- genYZ.log("bc")
+      fa <- genFA.log("fa")
+      ab <- genAB.log("ab")
+      bc <- genBC.log("bc")
     } yield {
-      F.functorLaw.composite[X, Y, Z](fa, ab, bc)==== true
+      F.functorLaw.composite[A, B, C](fa, ab, bc)==== true
     }
 
     def laws[F[_]](
@@ -121,56 +121,56 @@ object Laws {
   }
 
   object applicative {
-    def identity[F[_], X](genFX: Gen[F[X]])(implicit f: Applicative[F], ef: Equal[F[X]]): Property =
+    def identity[F[_], A](genFA: Gen[F[A]])(implicit f: Applicative[F], ef: Equal[F[A]]): Property =
       for {
-        fa <- genFX.log("fa")
+        fa <- genFA.log("fa")
       } yield {
-        f.applicativeLaw.identityAp[X](fa) ==== true
+        f.applicativeLaw.identityAp[A](fa) ==== true
       }
 
-    def composition[F[_], X, Y, Z](
-      genFX: Gen[F[X]], genFYZ: Gen[F[Y => Z]], genFXY: Gen[F[X => Y]]
+    def composition[F[_], A, B, C](
+      genFA: Gen[F[A]], genFBC: Gen[F[B => C]], genFAB: Gen[F[A => B]]
     )(
-      implicit ap: Applicative[F], e: Equal[F[Z]]
+      implicit ap: Applicative[F], e: Equal[F[C]]
     ): Property = for {
-      fa <- genFX.log("fa")
-      fbc <- genFYZ.log("fbc")
-      fab <- genFXY.log("fab")
+      fa <- genFA.log("fa")
+      fbc <- genFBC.log("fbc")
+      fab <- genFAB.log("fab")
     } yield {
-      ap.applicativeLaw.composition[X, Y, Z](fbc, fab, fa) ==== true
+      ap.applicativeLaw.composition[A, B, C](fbc, fab, fa) ==== true
     }
 
-    def homomorphism[F[_], X, Y](
-      genX: Gen[X], genXY: Gen[X => Y]
+    def homomorphism[F[_], A, B](
+      genA: Gen[A], genAB: Gen[A => B]
     )(
-      implicit ap: Applicative[F], e: Equal[F[Y]]
+      implicit ap: Applicative[F], e: Equal[F[B]]
     ): Property = for {
-      a <- genX.log("a")
-      ab <- genXY.log("ab")
+      a <- genA.log("a")
+      ab <- genAB.log("ab")
     } yield {
-      ap.applicativeLaw.homomorphism[X, Y](ab, a) ==== true
+      ap.applicativeLaw.homomorphism[A, B](ab, a) ==== true
     }
 
-    def interchange[F[_], X, Y](
-      genX: Gen[X], genFXY: Gen[F[X => Y]]
+    def interchange[F[_], A, B](
+      genA: Gen[A], genFAB: Gen[F[A => B]]
     )(
-      implicit ap: Applicative[F], e: Equal[F[Y]]
+      implicit ap: Applicative[F], e: Equal[F[B]]
     ): Property = for {
-      a <- genX.log("a")
-      fab <- genFXY.log("fab")
+      a <- genA.log("a")
+      fab <- genFAB.log("fab")
     } yield {
-      ap.applicativeLaw.interchange[X, Y](fab, a) ==== true
+      ap.applicativeLaw.interchange[A, B](fab, a) ==== true
     }
 
-    def mapApConsistency[F[_], X, Y](
-      genFX: Gen[F[X]], genXY: Gen[X => Y]
+    def mapApConsistency[F[_], A, B](
+      genFA: Gen[F[A]], genAB: Gen[A => B]
     )(
-      implicit ap: Applicative[F], e: Equal[F[Y]]
+      implicit ap: Applicative[F], e: Equal[F[B]]
     ): Property = for {
-      fa <- genFX.log("fa")
-      ab <- genXY.log("ab")
+      fa <- genFA.log("fa")
+      ab <- genAB.log("ab")
     } yield {
-      ap.applicativeLaw.mapLikeDerived[X, Y](ab, fa)  ==== true
+      ap.applicativeLaw.mapLikeDerived[A, B](ab, fa)  ==== true
     }
 
     def laws[F[_]](
@@ -192,52 +192,52 @@ object Laws {
         , property(s"$name - $lawName: map consistent with ap", applicative.mapApConsistency[F, Int, Int](genFInt, genIntToInt))
         )
       }
-  }
-
-  object monad {
-    def rightIdentity[M[_], X](genMX: Gen[M[X]])(implicit M: Monad[M], e: Equal[M[X]]): Property =
-      for {
-        ma <- genMX.log("ma")
-      } yield {
-        M.monadLaw.rightIdentity[X](ma) ==== true
-      }
-
-    def leftIdentity[M[_], X, Y](
-      genX: Gen[X], genXMY: Gen[X => M[Y]]
-    )(
-      implicit am: Monad[M], emy: Equal[M[Y]]
-    ): Property =
-      for {
-        a <- genX.log("a")
-        amb <- genXMY.log("amb")
-      } yield {
-        am.monadLaw.leftIdentity[X, Y](a, amb) ==== true
-      }
-
-    def associativity[M[_], X, Y, Z](
-      genMX: Gen[M[X]]
-    , genXMY: Gen[X => M[Y]]
-    , genYMZ: Gen[Y => M[Z]]
-    )(
-      implicit M: Monad[M], emz: Equal[M[Z]]
-    ): Property = for {
-      ma <- genMX.log("ma")
-      amb <- genXMY.log("amb")
-      bmc <- genYMZ.log("bmc")
-    } yield {
-      M.monadLaw.associativeBind[X, Y, Z](ma, amb, bmc) ==== true
     }
 
-    def bindApConsistency[M[_], X, Y](
-      genMX: Gen[M[X]]
-    , genMXY: Gen[M[X => Y]]
+  object monad {
+    def rightIdentity[M[_], A](genMA: Gen[M[A]])(implicit M: Monad[M], e: Equal[M[A]]): Property =
+      for {
+        ma <- genMA.log("ma")
+      } yield {
+        M.monadLaw.rightIdentity[A](ma) ==== true
+      }
+
+    def leftIdentity[M[_], A, B](
+      genA: Gen[A], genAToMB: Gen[A => M[B]]
     )(
-      implicit M: Monad[M], emy: Equal[M[Y]]
+      implicit am: Monad[M], emy: Equal[M[B]]
+    ): Property =
+      for {
+        a <- genA.log("a")
+        amb <- genAToMB.log("amb")
+      } yield {
+        am.monadLaw.leftIdentity[A, B](a, amb) ==== true
+      }
+
+    def associativity[M[_], A, B, C](
+      genMA: Gen[M[A]]
+    , genAToMB: Gen[A => M[B]]
+    , genBToMC: Gen[B => M[C]]
+    )(
+      implicit M: Monad[M], emz: Equal[M[C]]
     ): Property = for {
-      ma <- genMX.log("ma")
-      mab <- genMXY.log("mab")
+      ma <- genMA.log("ma")
+      amb <- genAToMB.log("amb")
+      bmc <- genBToMC.log("bmc")
     } yield {
-      M.monadLaw.apLikeDerived[X, Y](ma, mab) ==== true
+      M.monadLaw.associativeBind[A, B, C](ma, amb, bmc) ==== true
+    }
+
+    def bindApConsistency[M[_], A, B](
+      genMA: Gen[M[A]]
+    , genMAB: Gen[M[A => B]]
+    )(
+      implicit M: Monad[M], emy: Equal[M[B]]
+    ): Property = for {
+      ma <- genMA.log("ma")
+      mab <- genMAB.log("mab")
+    } yield {
+      M.monadLaw.apLikeDerived[A, B](ma, mab) ==== true
     }
 
     def laws[M[_]](
@@ -262,26 +262,26 @@ object Laws {
   }
 
   object traverse {
-    def identityTraverse[F[_], X, Y](
-      genFX: Gen[F[X]]
-    , genXY: Gen[X => Y]
+    def identityTraverse[F[_], A, B](
+      genFA: Gen[F[A]]
+    , genAB: Gen[A => B]
     )(
-      implicit f: Traverse[F], ef: Equal[F[Y]]
+      implicit f: Traverse[F], ef: Equal[F[B]]
     ): Property = for {
-      fa <- genFX.log("fa")
-      ab <- genXY.log("ab")
+      fa <- genFA.log("fa")
+      ab <- genAB.log("ab")
     } yield {
-      f.traverseLaw.identityTraverse[X, Y](fa, ab) ==== true
+      f.traverseLaw.identityTraverse[A, B](fa, ab) ==== true
     }
 
-    def purity[F[_], G[_], X](
-      genFX: Gen[F[X]]
+    def purity[F[_], G[_], A](
+      genFA: Gen[F[A]]
     )(
-      implicit f: Traverse[F], G: Applicative[G], ef: Equal[G[F[X]]]
+      implicit f: Traverse[F], G: Applicative[G], ef: Equal[G[F[A]]]
     ): Property = for {
-      fa <- genFX.log("fa")
+      fa <- genFA.log("fa")
     } yield {
-      f.traverseLaw.purity[G, X](fa) ==== true
+      f.traverseLaw.purity[G, A](fa) ==== true
     }
 
     def sequentialFusion[F[_], N[_], M[_], A, B, C](
@@ -342,12 +342,12 @@ object Laws {
 
 
   object plus {
-    def associative[F[_], X](genFX: Gen[F[X]])(implicit f: Plus[F], ef: Equal[F[X]]): Property = for {
-      fa1 <- genFX.log("fa1")
-      fa2 <- genFX.log("fa2")
-      fa3 <- genFX.log("fa3")
+    def associative[F[_], A](genFA: Gen[F[A]])(implicit f: Plus[F], ef: Equal[F[A]]): Property = for {
+      fa1 <- genFA.log("fa1")
+      fa2 <- genFA.log("fa2")
+      fa3 <- genFA.log("fa3")
     } yield {
-      f.plusLaw.associative[X](fa1, fa2, fa3) ==== true
+      f.plusLaw.associative[A](fa1, fa2, fa3) ==== true
     }
 
     def laws[F[_]](name: String, genFInt: Gen[F[Int]])(implicit F: Plus[F], ef: Equal[F[Int]]): List[Test] =
@@ -358,18 +358,18 @@ object Laws {
   }
 
   object plusEmpty {
-    def leftPlusIdentity[F[_], X](genFX: Gen[F[X]])(implicit f: PlusEmpty[F], ef: Equal[F[X]]): Property =
+    def leftPlusIdentity[F[_], A](genFA: Gen[F[A]])(implicit f: PlusEmpty[F], ef: Equal[F[A]]): Property =
       for {
-        fa <- genFX.log("fa")
+        fa <- genFA.log("fa")
       } yield {
-        f.plusEmptyLaw.leftPlusIdentity[X](fa) ==== true
+        f.plusEmptyLaw.leftPlusIdentity[A](fa) ==== true
       }
 
-    def rightPlusIdentity[F[_], X](genFX: Gen[F[X]])(implicit f: PlusEmpty[F], ef: Equal[F[X]]): Property =
+    def rightPlusIdentity[F[_], A](genFA: Gen[F[A]])(implicit f: PlusEmpty[F], ef: Equal[F[A]]): Property =
       for {
-        fa <- genFX.log("fa")
+        fa <- genFA.log("fa")
       } yield {
-        f.plusEmptyLaw.rightPlusIdentity[X](fa) ==== true
+        f.plusEmptyLaw.rightPlusIdentity[A](fa) ==== true
       }
 
     def laws[F[_]](
@@ -390,25 +390,25 @@ object Laws {
 
 
   object monadPlus {
-    def emptyMap[F[_], X](genXToX: Gen[X => X])(implicit f: MonadPlus[F], ef: Equal[F[X]]): Property =
+    def emptyMap[F[_], A](genAToA: Gen[A => A])(implicit f: MonadPlus[F], ef: Equal[F[A]]): Property =
       for {
-      aa <- genXToX.log("aa")
+      aa <- genAToA.log("aa")
       } yield {
-        f.monadPlusLaw.emptyMap[X](aa) ==== true
+        f.monadPlusLaw.emptyMap[A](aa) ==== true
       }
 
-    def leftZero[F[_], X](genXToFX: Gen[X => F[X]])(implicit F: MonadPlus[F], ef: Equal[F[X]]): Property =
+    def leftZero[F[_], A](genAToFA: Gen[A => F[A]])(implicit F: MonadPlus[F], ef: Equal[F[A]]): Property =
       for {
-        afa <- genXToFX.log("afa")
+        afa <- genAToFA.log("afa")
       } yield {
-        F.monadPlusLaw.leftZero[X](afa) ==== true
+        F.monadPlusLaw.leftZero[A](afa) ==== true
       }
 
-    def rightZero[F[_], X](genFX: Gen[F[X]])(implicit F: MonadPlus[F], ef: Equal[F[X]]): Property =
+    def rightZero[F[_], A](genFA: Gen[F[A]])(implicit F: MonadPlus[F], ef: Equal[F[A]]): Property =
       for {
-        fa <- genFX.log("fa")
+        fa <- genFA.log("fa")
       } yield {
-        F.strongMonadPlusLaw.rightZero[X](fa) ==== true
+        F.strongMonadPlusLaw.rightZero[A](fa) ==== true
       }
 
     def laws[F[_]](
