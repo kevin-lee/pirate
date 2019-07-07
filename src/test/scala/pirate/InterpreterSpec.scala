@@ -1,62 +1,60 @@
 package pirate
 
-import org.scalacheck.{Arbitrary, Gen}, Arbitrary.arbitrary
 import Pirate._
 import pirate.internal._
 import scalaz._, Scalaz._
+
+import hedgehog._
+import hedgehog.runner.{example => exampleTest, _}
+
+import pirate.spec.Gens
 
 sealed trait TestCommand
 case class TestWrapper(cmd: TestCommand)
 case object TestA extends TestCommand
 case object TestB extends TestCommand
 
-class InterpreterSpec extends spec.Spec { def is = s2"""
+object InterpreterSpec extends Properties {
 
-  Interpreter Properties
-  ======================
+  override  def tests: List[Test] = List(
+    /* Interpreter Properties */
+      exampleTest("Required found", requiredFound)
+    , exampleTest("Required missing applicatives both", requiredMissingA)
+    , exampleTest("Required missing applicatives first", requiredMissingB)
+    , exampleTest("Required missing applicatives second", requiredMissingC)
+    , exampleTest("Left over arguments fails", leftover)
+    , exampleTest("Two alternatives missing", requiredMissingAlts)
+    , exampleTest("Default found", defaultFound)
+    , exampleTest("Default missing", defaultMissing)
+    , exampleTest("Option found", optionFound)
+    , exampleTest("Option missing", optionMissing)
+    , property("Assignment found", assignmentFound)
+    , property("Assignment missing", assignmentMissing)
+    , exampleTest("Switches toggle on", switchesOn)
+    , exampleTest("Switches are off unless toggled", switchesOff)
+    , exampleTest("Multiple switches work in a single entry", multipleSwitches)
+    , exampleTest("Short option flag can come at the end of switch", flagAfterSwitch)
+    , exampleTest("Can measure the length of a set of flags", flagsLength)
+    , exampleTest("Short option flag args works without spaces", shortFlagPost)
+    , exampleTest("Position arguments work", positionalArgs)
+    , property("Many arguments work", manyArgs)
+    , property("Many arguments work after a positional", positionalFollowingMany)
+    , property("Many arguments work before a positional", manyFollowingPositional)
+    , exampleTest("Some fails on empty", someFailsOnEmpty)
+    , exampleTest("Invalid options produces reasonable error", invalidOpt)
+    , exampleTest("Invalid argument produces reasonable error", invalidArg)
+    , exampleTest("Arguments which parse poorly produces reasonable error", intArgString)
+    , exampleTest("Missing arguments produce sane errors", missingArg)
 
-  Basic interpretters
-  ===================
-
-  Required found                                  $requiredFound
-  Required missing applicatives both              $requiredMissingA
-  Required missing applicatives first             $requiredMissingB
-  Required missing applicatives second            $requiredMissingC
-  Left over arguments fails                       $leftover
-  Two alternatives missing                        $requiredMissingAlts
-  Default found                                   $defaultFound
-  Default missing                                 $defaultMissing
-  Option found                                    $optionFound
-  Option missing                                  $optionMissing
-  Assignment found                                $assignmentFound
-  Assignment missing                              $assignmentMissing
-  Switches toggle on                              $switchesOn
-  Switches are off unless toggled                 $switchesOff
-  Multiple switches work in a single entry        $multipleSwitches
-  Short option flag can come at the end of switch $flagAfterSwitch
-  Can measure the length of a set of flags        $flagsLength
-  Short option flag args works without spaces     $shortFlagPost
-  Position arguments work                         $positionalArgs
-  Many arguments work                             $manyArgs
-  Many arguments work after a positional          $positionalFollowingMany
-  Many arguments work before a positional         $manyFollowingPositional
-  Some fails on empty                             $someFailsOnEmpty
-  Invalid options produces reasonable error       $invalidOpt
-  Invalid argument produces reasonable error      $invalidArg
-  Arguments which parse poorly produces reasonable error  $intArgString
-  Missing arguments produce sane errors           $missingArg
-
-  Composite interpreters
-  ======================
-  Backtracking occurs when set                   $dobacktrack
-  Backtracking does not occurs when set          $donotbacktrack
-  Interpreter still works with backtracking on   $donotbacktrackbutstillwork
-  Interpreter handles the first multiple cases   $orFirst
-  Interpreter handles the second multiple cases  $orSecond
-  Interpreter handles wrapped commands well      $wrappers
-  Context flows through multiple subcommands     $subcontext
-
-"""
+    /* Composite interpreters */
+    , exampleTest("Backtracking occurs when set", dobacktrack)
+    , exampleTest("Backtracking does not occurs when set", donotbacktrack)
+    , exampleTest("Interpreter still works with backtracking on", donotbacktrackbutstillwork)
+    , property("Interpreter handles the first multiple cases", orFirst)
+    , property("Interpreter handles the second multiple cases", orSecond)
+    , property("Interpreter handles wrapped commands well", wrappers)
+    , exampleTest("Context flows through multiple subcommands", subcontext)
+    )
 
   def run[A](p: Parse[A], args: List[String]): ParseError \/ A = Interpreter.run(p, args, DefaultPrefs())._2
 
@@ -69,129 +67,146 @@ class InterpreterSpec extends spec.Spec { def is = s2"""
   def wrap(cmd: Parse[TestCommand]): Parse[TestWrapper] =
     cmd.map(TestWrapper)
 
-  def requiredFound =
+  def requiredFound: Result =
     run(flag[String](short('a'), Flags.empty), List("-a", "b")) ==== "b".right
 
-  def requiredMissingA =
-    run((flag[String](short('a'), Flags.empty) |@| flag[String](short('b'), Flags.empty))(_ -> _), List()).toEither must beLeft(ParseErrorMissing(ParseTreeAp(List(ParseTreeLeaf(FlagInfo(ShortName('a'), None, None, false, false)), ParseTreeLeaf(FlagInfo(ShortName('b'), None, None, false, false))))))
+  def requiredMissingA: Result =
+    run((flag[String](short('a'), Flags.empty) |@| flag[String](short('b'), Flags.empty))(_ -> _), List()).toEither ==== Left(ParseErrorMissing(ParseTreeAp(List(ParseTreeLeaf(FlagInfo(ShortName('a'), None, None, false, false)), ParseTreeLeaf(FlagInfo(ShortName('b'), None, None, false, false))))))
 
-  def requiredMissingB =
-    run((flag[String](short('a'), Flags.empty) |@| flag[String](short('b'), Flags.empty))(_ -> _), List("-b", "c")).toEither must beLeft(ParseErrorMissing(ParseTreeLeaf(FlagInfo(ShortName('a'), None, None, false, false))))
+  def requiredMissingB: Result =
+    run((flag[String](short('a'), Flags.empty) |@| flag[String](short('b'), Flags.empty))(_ -> _), List("-b", "c")).toEither ==== Left(ParseErrorMissing(ParseTreeLeaf(FlagInfo(ShortName('a'), None, None, false, false))))
 
-  def requiredMissingC =
-    run((flag[String](short('a'), Flags.empty) |@| flag[String](short('b'), Flags.empty))(_ -> _), List("-a", "c")).toEither must beLeft(ParseErrorMissing(ParseTreeLeaf(FlagInfo(ShortName('b'), None, None, false, false))))
+  def requiredMissingC: Result =
+    run((flag[String](short('a'), Flags.empty) |@| flag[String](short('b'), Flags.empty))(_ -> _), List("-a", "c")).toEither ==== Left(ParseErrorMissing(ParseTreeLeaf(FlagInfo(ShortName('b'), None, None, false, false))))
 
-  def leftover =
+  def leftover: Result =
     run(().pure[Parse], List("-a")) ==== ParseErrorLeftOver("-a" :: Nil).left
 
-  def requiredMissingAlts =
-    run(flag[String](short('a'), Flags.empty) ||| flag[String](short('b'), Flags.empty), List()).toEither must beLeft(ParseErrorMissing(ParseTreeAlt(List(ParseTreeLeaf(FlagInfo(ShortName('a'), None, None, false, false)), ParseTreeLeaf(FlagInfo(ShortName('b'), None, None, false, false))))))
+  def requiredMissingAlts: Result =
+    run(flag[String](short('a'), Flags.empty) ||| flag[String](short('b'), Flags.empty), List()).toEither ==== Left(ParseErrorMissing(ParseTreeAlt(List(ParseTreeLeaf(FlagInfo(ShortName('a'), None, None, false, false)), ParseTreeLeaf(FlagInfo(ShortName('b'), None, None, false, false))))))
 
-  def defaultFound =
+  def defaultFound: Result =
     run(flag[String](short('a'), Flags.empty).default("c"), List("-a", "b")) ==== "b".right
 
-  def defaultMissing =
+  def defaultMissing: Result =
     run(flag[String](short('a'), Flags.empty).default("c"), List()) ==== "c".right
 
-  def optionFound =
+  def optionFound: Result =
     run(flag[String](short('a'), Flags.empty).option, List("-a", "b")) ==== Some("b").right
 
-  def optionMissing =
+  def optionMissing: Result =
     run(flag[String](short('a'), Flags.empty).option, List()) ==== None.right
 
-  def assignmentFound = prop((name: LongNameString, value: String) => {
+  def assignmentFound: Property = for {
+    name <- genNonEmptyLongNameString.log("name")
+    value <- Gens.genUnicodeString(0, 50).log("value")
+  } yield {
     run(flag[String](long(name.s), Flags.empty), List(s"--${name.s}=$value")) ==== value.right
-  })
+  }
 
-  def assignmentMissing = prop((name: Name, lname: LongNameString, value: String) => name.long != Some(lname.s) ==> {
-    run(flag[String](name, Flags.empty), List(s"--${lname.s}=$value")).toEither must beLeft
-  })
+  def assignmentMissing: Property = for {
+    name <- Gens.genName.log("name")
+    lname <- genNonEmptyLongNameString.filter(l => name.long != Some(l.s)).log("lname")
+    value <- Gens.genUnicodeString(0, 50).log("value")
+  } yield {
+    Result.assert(
+      run(flag[String](name, Flags.empty), List(s"--${lname.s}=$value")).toEither.isLeft
+    )
+  }
 
-  def switchesOn =
+  def switchesOn: Result =
     run(switch(short('a'), Flags.empty), List("-a")) ==== true.right
 
-  def switchesOff =
+  def switchesOff: Result =
     run(switch(short('a'), Flags.empty), Nil) ==== false.right
 
-  def multipleSwitches =
+  def multipleSwitches: Result =
     run((switch(short('a'), Flags.empty) |@| switch(short('b'), Flags.empty))(_ -> _), List("-ab")) ==== (true, true).right
 
-  def flagAfterSwitch =
+  def flagAfterSwitch: Result =
     run((switch(short('a'), Flags.empty) |@| flag[String](short('b'), Flags.empty))(_ -> _), List("-ab", "c")) ==== (true, "c").right
 
-  def shortFlagPost =
+  def shortFlagPost: Result =
     run(flag[String](short('a'), Flags.empty), List("-ab")) ==== "b".right
 
-  def flagsLength =
+  def flagsLength: Result =
     run(terminator(short('t'), Flags.empty, ()).many.map(_.length), List("-ttt")) ==== 3.right
 
-  def positionalArgs =
+  def positionalArgs: Result =
     run((argument[String](metavar("src")) |@| argument[String](metavar("dst")))(_ -> _), List("/tmp/src", "tmp/dst")) ==== ("/tmp/src", "tmp/dst").right
 
-  def manyArgs = prop((args: List[String]) =>
+  def manyArgs: Property = for {
+    args <- Gens.genUnicodeString(1, 20).list(Range.linear(0, 20)).log("args")
+  } yield {
     run(arguments[String](metavar("files")), "--" :: args) ==== args.right
-  )
+  }
 
-  def positionalFollowingMany = prop((args: List[String]) => args.length >= 1 ==> {
+  def positionalFollowingMany: Property = for {
+    args <- Gens.genUnicodeString(1, 20).list(Range.linear(1, 20)).log("args")
+  } yield {
     run((argument[String](metavar("src")) |@| arguments[String](metavar("dst")))(_ -> _), "--" :: args) ==== (args.head, args.tail).right
-  })
+  }
 
-  def manyFollowingPositional = prop((args: List[String]) => args.length >= 1 ==> {
-    run((arguments[String](metavar("dst")) |@| argument[String](metavar("src")))(_ -> _), "--" :: args) ==== (args.init, args.last).right
-  }).pendingUntilFixed
+  // FIXME: This is actually broken. If it is fixed, this test fails.
+  def manyFollowingPositional: Property = for {
+    args <- Gens.genUnicodeString(1, 20).list(Range.linear(1, 20)).log("args")
+  } yield {
+    Result.assert(
+      run((arguments[String](metavar("dst")) |@| argument[String](metavar("src")))(_ -> _), "--" :: args) != (args.init, args.last).right
+    ).log("FIXME: This works now so please fix the test.")
+  }
 
-  def someFailsOnEmpty = run(argument[String](metavar("files")).some, List()).toEither must beLeft
+  def someFailsOnEmpty: Result =
+    Result.assert(run(argument[String](metavar("files")).some, List()).toEither.isLeft)
 
-  def invalidOpt = {
+  def invalidOpt: Result =
     run(flag[String](short('a'), Flags.empty), List("-c")) ==== ParseErrorInvalidOption("-c").left
-  }
 
-  def invalidArg = {
+  def invalidArg: Result =
     run(flag[String](short('a'), Flags.empty), List("file.txt")) ==== ParseErrorInvalidArgument("file.txt").left
-  }
 
-  def intArgString = {
+  def intArgString: Result =
     run(argument[Int](metavar("src")), List("file.txt")) ==== ParseErrorMessage("Error parsing `file.txt` as `Int`").left
+
+  def missingArg: Result =
+    Result.assert(run(argument[Int](metavar("src")), Nil).toEither.isLeft)
+
+  def dobacktrack: Result = Interpreter.run((subcommand(().pure[Parse] ~ "first") |@| switch(short('a'), Flags.empty))(_ -> _),
+    "first" :: "-a" :: Nil, DefaultPrefs()) ==== (("first" :: Nil) -> ((), true).right)
+
+  def donotbacktrack: Result = Interpreter.run((subcommand(().pure[Parse] ~ "first") |@| switch(short('a'), Flags.empty))(_ -> _),
+    "first" :: "-a" :: Nil, DefaultPrefs().copy(backtrack=false)) ==== (("first" :: Nil) -> ParseErrorLeftOver("-a" :: Nil).left)
+
+  def donotbacktrackbutstillwork: Result = Interpreter.run((subcommand(().pure[Parse] ~ "first") |@| switch(short('a'), Flags.empty))(_ -> _),
+    "-a" :: "first" :: Nil, DefaultPrefs().copy(backtrack=false)) ==== (("first" :: Nil) -> ((), true).right)
+
+  def orFirst: Property = for {
+    nameOne <- genNonEmptyLongNameString.log("nameOne")
+    nameTwo <- genNonEmptyLongNameString.filter(name2 => nameOne.s != name2.s).log("nameTwo")
+  } yield {
+    run((testA(nameOne.s) ||| testB(nameTwo.s)) , List(s"--${nameOne.s}")) ==== TestA.right
   }
 
-  def missingArg = {
-    run(argument[Int](metavar("src")), Nil).toEither must beLeft
+
+  def orSecond: Property = for {
+    nameOne <- genNonEmptyLongNameString.log("nameOne")
+    nameTwo <- genNonEmptyLongNameString.filter(name2 => nameOne.s != name2.s).log("nameTwo")
+  } yield {
+    run((testA(nameOne.s) ||| testB(nameTwo.s)) , List(s"--${nameTwo.s}")) ==== TestB.right
   }
 
-  def dobacktrack = Interpreter.run((subcommand(().pure[Parse] ~ "first") |@| switch(short('a'), Flags.empty))(_ -> _),
-    "first" :: "-a" :: Nil, DefaultPrefs()) must_== (("first" :: Nil) -> ((), true).right)
+  def wrappers: Property = for {
+    name <- genNonEmptyLongNameString.log("name")
+  } yield {
+    run(wrap(testA(name.s)), List(s"--${name.s}")) ==== TestWrapper(TestA).right
+  }
 
-  def donotbacktrack = Interpreter.run((subcommand(().pure[Parse] ~ "first") |@| switch(short('a'), Flags.empty))(_ -> _),
-    "first" :: "-a" :: Nil, DefaultPrefs().copy(backtrack=false)) must_== (("first" :: Nil) -> ParseErrorLeftOver("-a" :: Nil).left)
-
-  def donotbacktrackbutstillwork = Interpreter.run((subcommand(().pure[Parse] ~ "first") |@| switch(short('a'), Flags.empty))(_ -> _),
-    "-a" :: "first" :: Nil, DefaultPrefs().copy(backtrack=false)) must_== (("first" :: Nil) -> ((), true).right)
-
-  def orFirst = prop((nameOne: LongNameString, nameTwo: LongNameString) => nameOne.s != nameTwo.s ==> {
-    run((testA(nameOne.s) ||| testB(nameTwo.s)) , List(s"--${nameOne.s}")) must_== TestA.right
-  })
-
-  def orSecond = prop((nameOne: LongNameString, nameTwo: LongNameString) => nameOne.s != nameTwo.s ==> {
-    run((testA(nameOne.s) ||| testB(nameTwo.s)) , List(s"--${nameTwo.s}")) must_== TestB.right
-  })
-
-  def wrappers = prop((name: LongNameString) => {
-    run(wrap(testA(name.s)), List(s"--${name.s}")) must_== TestWrapper(TestA).right
-  })
-
-  def subcontext = Interpreter.run(subcommand(subcommand(subcommand(().pure[Parse] ~ "third" ) ~ "second" ) ~ "first"),
-    "first" :: "second" :: "third" :: Nil, DefaultPrefs()) must_== (("first" :: "second" :: "third" :: Nil) -> ().right)
+  def subcontext: Result = Interpreter.run(subcommand(subcommand(subcommand(().pure[Parse] ~ "third" ) ~ "second" ) ~ "first"),
+    "first" :: "second" :: "third" :: Nil, DefaultPrefs()) ==== (("first" :: "second" :: "third" :: Nil) -> ().right)
 
   case class LongNameString(s: String)
-  implicit def NonEmptyStringArbitrary: Arbitrary[LongNameString] = Arbitrary(
-    (arbitrary[Char] tuple arbitrary[String].filter(!_.contains("="))).map { case (c, s) => LongNameString(c.toString + s) }
-  )
-
-  implicit def NameArbitrary: Arbitrary[Name] = Arbitrary(
-    Gen.oneOf(
-      arbitrary[Char].map(ShortName),
-      arbitrary[LongNameString].map(_.s).map(LongName),
-      (arbitrary[Char] tuple arbitrary[LongNameString].map(_.s)).map { case (c, s) => BothName(c, s) }
-    )
-  )
+  def genNonEmptyLongNameString: Gen[LongNameString] = for {
+    c <- Gen.alpha
+    s <- Gens.genUnicodeString(0, 20).filter(!_.contains("="))
+  } yield LongNameString(c.toString + s)
 }
