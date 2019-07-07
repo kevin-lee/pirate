@@ -109,7 +109,9 @@ object InterpreterSpec extends Properties {
     lname <- genNonEmptyLongNameString.filter(l => name.long != Some(l.s)).log("lname")
     value <- Gens.genUnicodeString(0, 50).log("value")
   } yield {
-    run(flag[String](name, Flags.empty), List(s"--${lname.s}=$value")).toEither.isLeft ==== true
+    Result.assert(
+      run(flag[String](name, Flags.empty), List(s"--${lname.s}=$value")).toEither.isLeft
+    )
   }
 
   def switchesOn: Result =
@@ -154,23 +156,20 @@ object InterpreterSpec extends Properties {
     ).log("FIXME: This works now so please fix the test.")
   }
 
-  def someFailsOnEmpty: Result = run(argument[String](metavar("files")).some, List()).toEither.isLeft ==== true
+  def someFailsOnEmpty: Result =
+    Result.assert(run(argument[String](metavar("files")).some, List()).toEither.isLeft)
 
-  def invalidOpt: Result = {
+  def invalidOpt: Result =
     run(flag[String](short('a'), Flags.empty), List("-c")) ==== ParseErrorInvalidOption("-c").left
-  }
 
-  def invalidArg: Result = {
+  def invalidArg: Result =
     run(flag[String](short('a'), Flags.empty), List("file.txt")) ==== ParseErrorInvalidArgument("file.txt").left
-  }
 
-  def intArgString: Result = {
+  def intArgString: Result =
     run(argument[Int](metavar("src")), List("file.txt")) ==== ParseErrorMessage("Error parsing `file.txt` as `Int`").left
-  }
 
-  def missingArg: Result = {
-    run(argument[Int](metavar("src")), Nil).toEither.isLeft ==== true
-  }
+  def missingArg: Result =
+    Result.assert(run(argument[Int](metavar("src")), Nil).toEither.isLeft)
 
   def dobacktrack: Result = Interpreter.run((subcommand(().pure[Parse] ~ "first") |@| switch(short('a'), Flags.empty))(_ -> _),
     "first" :: "-a" :: Nil, DefaultPrefs()) ==== (("first" :: Nil) -> ((), true).right)

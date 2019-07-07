@@ -14,13 +14,13 @@ object Laws {
       a <- genA.log("a")
       b <- genA.log("b")
     } yield {
-      A.equalLaw.commutative(a, b) ==== true
+      Result.assert(A.equalLaw.commutative(a, b))
     }
 
     def reflexive[A](genA: Gen[A])(implicit A: Equal[A]): Property = for {
       a <- genA.log("a")
     } yield {
-      A.equalLaw.reflexive(a) ==== true
+      Result.assert(A.equalLaw.reflexive(a))
     }
 
     def transitive[A](genA: Gen[A])(implicit A: Equal[A]): Property = for {
@@ -28,14 +28,14 @@ object Laws {
       b <- genA.log("b")
       c <- genA.log("c")
     } yield {
-      A.equalLaw.transitive(a, b, c) ==== true
+      Result.assert(A.equalLaw.transitive(a, b, c))
     }
 
     def naturality[A](genA: Gen[A])(implicit A: Equal[A]): Property = for {
       a <- genA.log("a")
       b <- genA.log("b")
     } yield {
-      A.equalLaw.naturality(a, b) ==== true
+      Result.assert(A.equalLaw.naturality(a, b))
     }
 
     def laws[A](name: String, genA: Gen[A])(implicit A: Equal[A]): List[Test] = {
@@ -55,7 +55,7 @@ object Laws {
       b <- genA.log("b")
       c <- genA.log("c")
     } yield {
-      A.semigroupLaw.associative(a, b, c) ==== true
+      Result.assert(A.semigroupLaw.associative(a, b, c))
     }
 
     def laws[A](name: String, genA: Gen[A])(implicit A: Semigroup[A], eqa: Equal[A]): List[Test] = List(
@@ -68,13 +68,13 @@ object Laws {
     def leftIdentity[A](genA: Gen[A])(implicit A: Monoid[A], eqa: Equal[A]): Property = for {
       a <- genA.log("a")
     } yield {
-      A.monoidLaw.leftIdentity(a) ==== true
+      Result.assert(A.monoidLaw.leftIdentity(a))
     }
 
     def rightIdentity[A](genA: Gen[A])(implicit A: Monoid[A], eqa: Equal[A]): Property = for {
       a <- genA.log("a")
     } yield {
-      A.monoidLaw.rightIdentity(a) ==== true
+      Result.assert(A.monoidLaw.rightIdentity(a))
     }
 
     def laws[A](name: String, genA: Gen[A])(implicit A: Monoid[A], eqa: Equal[A]): List[Test] = {
@@ -90,7 +90,7 @@ object Laws {
     def identity[F[_], A](genFA: Gen[F[A]])(implicit F: Functor[F], ef: Equal[F[A]]): Property = for {
       fa <- genFA.log("fa")
     } yield {
-      F.functorLaw.identity[A](fa) ==== true
+      Result.assert(F.functorLaw.identity[A](fa))
     }
 
     def composite[F[_], A, B, C](
@@ -102,7 +102,7 @@ object Laws {
       ab <- genAB.log("ab")
       bc <- genBC.log("bc")
     } yield {
-      F.functorLaw.composite[A, B, C](fa, ab, bc)==== true
+      Result.assert(F.functorLaw.composite[A, B, C](fa, ab, bc))
     }
 
     def laws[F[_]](
@@ -125,7 +125,7 @@ object Laws {
       for {
         fa <- genFA.log("fa")
       } yield {
-        f.applicativeLaw.identityAp[A](fa) ==== true
+        Result.assert(f.applicativeLaw.identityAp[A](fa))
       }
 
     def composition[F[_], A, B, C](
@@ -137,7 +137,7 @@ object Laws {
       fbc <- genFBC.log("fbc")
       fab <- genFAB.log("fab")
     } yield {
-      ap.applicativeLaw.composition[A, B, C](fbc, fab, fa) ==== true
+      Result.assert(ap.applicativeLaw.composition[A, B, C](fbc, fab, fa))
     }
 
     def homomorphism[F[_], A, B](
@@ -148,7 +148,7 @@ object Laws {
       a <- genA.log("a")
       ab <- genAB.log("ab")
     } yield {
-      ap.applicativeLaw.homomorphism[A, B](ab, a) ==== true
+      Result.assert(ap.applicativeLaw.homomorphism[A, B](ab, a))
     }
 
     def interchange[F[_], A, B](
@@ -159,7 +159,7 @@ object Laws {
       a <- genA.log("a")
       fab <- genFAB.log("fab")
     } yield {
-      ap.applicativeLaw.interchange[A, B](fab, a) ==== true
+      Result.assert(ap.applicativeLaw.interchange[A, B](fab, a))
     }
 
     def mapApConsistency[F[_], A, B](
@@ -170,7 +170,7 @@ object Laws {
       fa <- genFA.log("fa")
       ab <- genAB.log("ab")
     } yield {
-      ap.applicativeLaw.mapLikeDerived[A, B](ab, fa)  ==== true
+      Result.assert(ap.applicativeLaw.mapLikeDerived[A, B](ab, fa) )
     }
 
     def laws[F[_]](
@@ -199,7 +199,7 @@ object Laws {
       for {
         ma <- genMA.log("ma")
       } yield {
-        M.monadLaw.rightIdentity[A](ma) ==== true
+        Result.assert(M.monadLaw.rightIdentity[A](ma))
       }
 
     def leftIdentity[M[_], A, B](
@@ -211,7 +211,7 @@ object Laws {
         a <- genA.log("a")
         amb <- genAToMB.log("amb")
       } yield {
-        am.monadLaw.leftIdentity[A, B](a, amb) ==== true
+        Result.assert(am.monadLaw.leftIdentity[A, B](a, amb))
       }
 
     def associativity[M[_], A, B, C](
@@ -225,7 +225,7 @@ object Laws {
       amb <- genAToMB.log("amb")
       bmc <- genBToMC.log("bmc")
     } yield {
-      M.monadLaw.associativeBind[A, B, C](ma, amb, bmc) ==== true
+      Result.assert(M.monadLaw.associativeBind[A, B, C](ma, amb, bmc))
     }
 
     def bindApConsistency[M[_], A, B](
@@ -237,7 +237,7 @@ object Laws {
       ma <- genMA.log("ma")
       mab <- genMAB.log("mab")
     } yield {
-      M.monadLaw.apLikeDerived[A, B](ma, mab) ==== true
+      Result.assert(M.monadLaw.apLikeDerived[A, B](ma, mab))
     }
 
     def laws[M[_]](
@@ -271,7 +271,7 @@ object Laws {
       fa <- genFA.log("fa")
       ab <- genAB.log("ab")
     } yield {
-      f.traverseLaw.identityTraverse[A, B](fa, ab) ==== true
+      Result.assert(f.traverseLaw.identityTraverse[A, B](fa, ab))
     }
 
     def purity[F[_], G[_], A](
@@ -281,7 +281,7 @@ object Laws {
     ): Property = for {
       fa <- genFA.log("fa")
     } yield {
-      f.traverseLaw.purity[G, A](fa) ==== true
+      Result.assert(f.traverseLaw.purity[G, A](fa))
     }
 
     def sequentialFusion[F[_], N[_], M[_], A, B, C](
@@ -295,7 +295,7 @@ object Laws {
       amb <- genAMB.log("amb")
       bnc <- genBNC.log("bnc")
     } yield {
-      F.traverseLaw.sequentialFusion[N, M, A, B, C](fa, amb, bnc) ==== true
+      Result.assert(F.traverseLaw.sequentialFusion[N, M, A, B, C](fa, amb, bnc))
     }
 
     def naturality[F[_], N[_], M[_], A](nat: (M ~> N))(genFMA: Gen[F[M[A]]])(
@@ -303,7 +303,7 @@ object Laws {
     ): Property = for {
       fma <- genFMA.log("fma")
     } yield {
-      F.traverseLaw.naturality[N, M, A](nat)(fma) ==== true
+      Result.assert(F.traverseLaw.naturality[N, M, A](nat)(fma))
     }
 
     def parallelFusion[F[_], N[_], M[_], A, B](
@@ -317,7 +317,7 @@ object Laws {
       amb <- genAMB.log("amb")
       anb <- genANB.log("anb")
     } yield {
-      F.traverseLaw.parallelFusion[N, M, A, B](fa, amb, anb) ==== true
+      Result.assert(F.traverseLaw.parallelFusion[N, M, A, B](fa, amb, anb))
     }
 
     def laws[F[_]](
@@ -347,7 +347,7 @@ object Laws {
       fa2 <- genFA.log("fa2")
       fa3 <- genFA.log("fa3")
     } yield {
-      f.plusLaw.associative[A](fa1, fa2, fa3) ==== true
+      Result.assert(f.plusLaw.associative[A](fa1, fa2, fa3))
     }
 
     def laws[F[_]](name: String, genFInt: Gen[F[Int]])(implicit F: Plus[F], ef: Equal[F[Int]]): List[Test] =
@@ -362,14 +362,14 @@ object Laws {
       for {
         fa <- genFA.log("fa")
       } yield {
-        f.plusEmptyLaw.leftPlusIdentity[A](fa) ==== true
+        Result.assert(f.plusEmptyLaw.leftPlusIdentity[A](fa))
       }
 
     def rightPlusIdentity[F[_], A](genFA: Gen[F[A]])(implicit f: PlusEmpty[F], ef: Equal[F[A]]): Property =
       for {
         fa <- genFA.log("fa")
       } yield {
-        f.plusEmptyLaw.rightPlusIdentity[A](fa) ==== true
+        Result.assert(f.plusEmptyLaw.rightPlusIdentity[A](fa))
       }
 
     def laws[F[_]](
@@ -394,21 +394,21 @@ object Laws {
       for {
       aa <- genAToA.log("aa")
       } yield {
-        f.monadPlusLaw.emptyMap[A](aa) ==== true
+        Result.assert(f.monadPlusLaw.emptyMap[A](aa))
       }
 
     def leftZero[F[_], A](genAToFA: Gen[A => F[A]])(implicit F: MonadPlus[F], ef: Equal[F[A]]): Property =
       for {
         afa <- genAToFA.log("afa")
       } yield {
-        F.monadPlusLaw.leftZero[A](afa) ==== true
+        Result.assert(F.monadPlusLaw.leftZero[A](afa))
       }
 
     def rightZero[F[_], A](genFA: Gen[F[A]])(implicit F: MonadPlus[F], ef: Equal[F[A]]): Property =
       for {
         fa <- genFA.log("fa")
       } yield {
-        F.strongMonadPlusLaw.rightZero[A](fa) ==== true
+        Result.assert(F.strongMonadPlusLaw.rightZero[A](fa))
       }
 
     def laws[F[_]](

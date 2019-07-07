@@ -22,7 +22,7 @@ object TextSpec extends Properties {
   def spaces: Property = for {
     n <- Gens.genSmallInt.log("n")
   } yield {
-    space(n.value).forall(_ == ' ') ==== true
+    Result.assert(space(n.value).forall(_ == ' '))
   }
 
   def length: Property = for {
@@ -34,32 +34,38 @@ object TextSpec extends Properties {
   def width: Property = for {
     l <- Gens.genLongLine.log("l")
   } yield {
-    wrap("", 0)(l.value, 80, 0)
-      .split('\n')
-      .forall(_.length <= 80) ==== true
+    Result.assert(
+      wrap("", 0)(l.value, 80, 0)
+        .split('\n')
+        .forall(_.length <= 80)
+    )
   }
 
   def indent: Property = for {
     l <- Gens.genLongLine.log("l")
   } yield {
-    wrap("", 0)(l.value, 80, 10)
-      .split('\n')
-      .forall(_.length <= 90) ==== true
+    Result.assert(
+      wrap("", 0)(l.value, 80, 10)
+        .split('\n')
+        .forall(_.length <= 90)
+    )
   }
 
   def negativeWidth: Property = for {
     l <- Gens.genLongLine.log("l")
     s <- Gens.genSmallInt.log("s")
   } yield {
-    wrap("", 0)(l.value, 50 - s.value, 10)
-      .split('\n')
-      .forall(_.length <= 90) ==== true
+    Result.assert(
+      wrap("", 0)(l.value, 50 - s.value, 10)
+        .split('\n')
+        .forall(_.length <= 90)
+    )
   }
 
   def safe: Property = for {
     l <- Gens.genLongLine.log("l")
   } yield {
-    drains(l.value.trim, wrap("", 0)(l.value, 80, 5)) ==== true
+    Result.assert(drains(l.value.trim, wrap("", 0)(l.value, 80, 5)))
   }
 
   def gutter: Property = for {
