@@ -180,7 +180,7 @@ object Read extends shapeless.ProductTypeClassCompanion[Read] {
     def append(p1: Read[A], p2: => Read[A]): Read[A] = p1 ||| p2
   }
 
-  implicit def ReadTypeClass: shapeless.ProductTypeClass[Read] = new shapeless.ProductTypeClass[Read] {
+  implicit override val typeClass: shapeless.ProductTypeClass[Read] = new shapeless.ProductTypeClass[Read] {
     import shapeless._
 
     def emptyProduct =
