@@ -53,6 +53,26 @@ val cmd = (MyArgs |*| (
   )) ~ "myprogram" ~~ "My description"
 ```
 
+To make the `help` option available without adding it manually, use `piratex.Metavar` and `piratex.Help`. 
+
+```scala
+import piratex._
+
+val rawCmd =
+  (MyArgs |*| (
+      switch(both('f',"flag"), description("enable flag."))
+    , flag[String](long("author"), metavar("<pattern>")).option
+    , flag[String](long("delim"), metavar("[|]")).default("|")
+    , switch(long("dry-run"), empty)
+    , argument[String](metavar("<path>"))
+    )) ~ "myprogram" ~~ "My description"
+
+val cmd =
+  Metavar.rewriteCommand(
+    Help.rewriteCommand(rawCmd)
+  )
+```
+
 Extend `PirateMain` or `PirateMainIO` to use:
 
 ```scala
