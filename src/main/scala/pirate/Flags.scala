@@ -1,6 +1,6 @@
 package pirate
 
-import scalaz._, Scalaz._
+import scalaz.{Name => _, _}, Scalaz._
 
 object Flags extends Flags
 

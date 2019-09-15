@@ -2,7 +2,7 @@ package pirate
 
 import pirate.internal._
 
-import scalaz._, Scalaz._
+import scalaz.{Name => _, _}, Scalaz._
 
 object Usage {
 
