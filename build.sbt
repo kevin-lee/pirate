@@ -13,8 +13,7 @@ lazy val pirate =
   (project in file("."))
     .settings(name := "pirate")
     .settings(
-      crossScalaVersions := Seq("2.10.5", scalaVersion.value)
-    , scalacOptions := Seq(
+      scalacOptions := Seq(
           "-deprecation"
         , "-unchecked"
         , "-feature"
@@ -34,13 +33,7 @@ lazy val pirate =
     , libraryDependencies ++= Seq(
           "org.scalaz" %% "scalaz-core" % "7.2.23"
         , "org.scalaz" %% "scalaz-effect" % "7.2.23"
-      ) ++ (
-        if (scalaVersion.value.contains("2.10"))
-          Seq(
-            "com.chuusai" % "shapeless" % "2.1.0" cross CrossVersion.full
-          , compilerPlugin("org.scalamacros" % "paradise_2.10.5" % "2.0.1")
-          )
-        else
-          Seq("com.chuusai" %% s"shapeless" % "2.1.0")
-      ) ++ hedgehog
+        , "com.chuusai" %% "shapeless" % "2.1.0"
+      ) ++
+      hedgehog
     )
