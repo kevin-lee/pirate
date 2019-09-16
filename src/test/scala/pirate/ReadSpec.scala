@@ -104,9 +104,6 @@ object ReadSpec extends Properties {
   Read.of[java.net.URI]
   Read.of[java.net.URL]
   Read.of[Option[String]]
-
-  import Read.auto._
-
   Read.of[(Int, Int)]
   Read.of[(String, Int)]
   Read.of[(Int, String)]
