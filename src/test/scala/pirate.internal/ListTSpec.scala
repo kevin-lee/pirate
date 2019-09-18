@@ -1,7 +1,7 @@
 package pirate
 package internal
 
-import scalaz._, Scalaz._
+import scalaz.{ListT => _, _}, Scalaz._
 
 import hedgehog.runner._
 

@@ -1,6 +1,6 @@
 package pirate
 
-import scalaz._
+import scalaz.{Name => _, _}
 
 sealed trait Parser[A] {
   def map[B](f: A => B): Parser[B] = this match {
