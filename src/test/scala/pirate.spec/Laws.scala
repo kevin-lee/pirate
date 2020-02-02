@@ -8,7 +8,7 @@ import hedgehog.runner._
 
 /* ripped from scalaz-scalacheck-binding due to binary compatability issues */
 
-object Laws {
+object Laws extends LawsCompat {
   object equal {
     def commutativity[A](genA: Gen[A])(implicit A: Equal[A]): Property = for {
       a <- genA.log("a")
@@ -334,7 +334,7 @@ object Laws {
       List(
         property(s"$name - $lawName: identity traverse", identityTraverse[F, Int, Int](genFInt, genIntToInt))
       , property(s"$name - $lawName: purity.option", purity[F, Option, Int](genFInt))
-      , property(s"$name - $lawName: purity.stream", purity[F, Stream, Int](genFInt))
+      , property(s"$name - $lawName: purity.lazyCollection", purity[F, LazyCollection, Int](genFInt))
       , property(s"$name - $lawName: sequential fusion", sequentialFusion[F, Option, List, Int, Int, Int](genFInt, genIntToListInt, genIntToOptionInt))
       )
     }
