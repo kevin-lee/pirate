@@ -26,6 +26,13 @@ lazy val pirate =
     , scalacOptions in (Compile, console) := Seq("-language:_", "-feature")
     , scalacOptions in (Test, console) := Seq("-language:_", "-feature")
     , scalacOptions in Test := Seq("-Yrangepos")
+    , unmanagedSourceDirectories in Test ++= {
+        val sharedSourceDir = baseDirectory.value / "src/test"
+        if (scalaVersion.value.startsWith("2.13"))
+          Seq(sharedSourceDir / "scala-2.13")
+        else
+          Seq(sharedSourceDir / "scala-2.13-")
+      }
     , testFrameworks := Seq(TestFramework("hedgehog.sbt.Framework"))
     , resolvers += "bintray-scala-hedgehog" at "https://dl.bintray.com/hedgehogqa/scala-hedgehog"
     , libraryDependencies ++= Seq(
