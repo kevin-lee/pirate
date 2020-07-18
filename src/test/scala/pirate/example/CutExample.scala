@@ -18,23 +18,23 @@ case class FieldCut(list: String, suppress: Boolean, delimiter: Char, files: Lis
 // FIX support explicit read, i.e. 'list'
 // FIX descriptions on fields
 object CutMain extends PirateMainIO[Cut] {
-  val byte: Parse[Cut] = (ByteCut |*| (
+  val byte: Parse[Cut] = (ByteCut |*| ((
     flag[String](short('b'), metavar("list") |+| description("The list specifies byte positions."))
   , switch(short('n'), description("Do not split multi-byte characters.")).not
   , arguments[File](metavar("file"))
-  )).map(x => x)
+  ))).map(x => x)
 
-  val char: Parse[Cut] = (CharCut |*| (
+  val char: Parse[Cut] = (CharCut |*| ((
     flag[String](short('c'), metavar("list") |+| description("The list specifies character positions."))
   , arguments[File](metavar("file"))
-  )).map(x => x)
+  ))).map(x => x)
 
-  val field: Parse[Cut] = (FieldCut |*| (
+  val field: Parse[Cut] = (FieldCut |*| ((
     flag[String](short('f'), metavar("list") |+| description("The list specifies fields, separated in the input by the field delimiter character (see the -d option.)  Output fields are separated by a single occurrence of the field delimiter character."))
   , switch(short('s'), description("Suppress lines with no field delimiter characters."))
   , flag[Char](both('d', "delimiter"), metavar("delim") |+| description("Use delim as the field delimiter character instead of the tab character.")).default('\t')
   , arguments[File](metavar("file"))
-  )).map(x => x)
+  ))).map(x => x)
 
   override def prefs = DefaultPrefs().copy(separateTopLevels = true)
 

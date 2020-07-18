@@ -58,7 +58,7 @@ object GitMain extends PirateMainIO[Git] {
                             |@| arguments[File](metavar("paths")))(GitRm)
 
   def git(cmd: Parse[GitCommand]): Parse[Git] =
-    (Git |*| (cwd, conf, exec, cmd)) <* helperX
+    (Git |*| ((cwd, conf, exec, cmd))) <* helperX
 
   val command: Command[Git] =
     git { version ||| html ||| man ||| info ||| subcommand(add ~ "add" ~~ "Add file contents to the index") ||| subcommand(rm ~ "rm" ~~ "Remove files from the working tree and from the index") } ~ "git" ~~ "This is a demo of the git command line"
