@@ -11,11 +11,11 @@ object InteractiveExample {
     int: Int
   )
 
-  val example = Example |*| (
+  val example = Example |*| ((
     switch(short('s'), empty)
   , flag[String](short('c'), description("STRING"))
   , flag[Int](short('n'), description("INT"))
-  )
+  ))
 
  val command = example ~ "example" ~~
    """|An interactive example for pirate.
