@@ -27,7 +27,7 @@ object Metavar {
       case AltParse(a, b) =>
         AltParse(rewriteParse(a), rewriteParse(b))
       case BindParse(f, a) =>
-        BindParse((x: Any) => rewriteParse(f(x)), rewriteParse(a))
+        BindParse((x: Any) => rewriteParse(f.asInstanceOf[Any => Parse[A]](x)), rewriteParse(a))
     }
 
   def rewriteMetaFromLongName(name: Name, meta: Metadata): Metadata =

@@ -27,7 +27,7 @@ object Gens {
   case class SmallInt(value: Int)
 
   def genSmallInt: Gen[SmallInt] =
-    Gen.int(Range.linear(0, 1000)).map(SmallInt)
+    Gen.int(Range.linear(0, 1000)).map(SmallInt.apply)
 
   case class LongLine(value: String)
 
@@ -39,12 +39,12 @@ object Gens {
     } yield List5(l)
 
   def genLongLine: Gen[LongLine] =
-    Gen.string(Gen.unicode, Range.singleton(1000)).map(LongLine)
+    Gen.string(Gen.unicode, Range.singleton(1000)).map(LongLine.apply)
 
   def genName: Gen[Name] =
     Gen.choice1(
-        Gen.alpha.map(ShortName)
-      , Gen.string(Gen.alpha, Range.linear(0, 20)).map(LongName)
+        Gen.alpha.map(ShortName.apply)
+      , Gen.string(Gen.alpha, Range.linear(0, 20)).map(LongName.apply)
       , for { c <- Gen.alpha; s <- Gen.string(Gen.alpha, Range.linear(0, 20)) } yield Name(c, s)
       )
 

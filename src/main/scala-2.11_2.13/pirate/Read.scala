@@ -1,6 +1,8 @@
 package pirate
 
-import scalaz._, Scalaz._
+import scalaz._
+import Scalaz._
+
 import scala.util.Try
 
 /**
@@ -183,13 +185,13 @@ object Read extends shapeless.ProductTypeClassCompanion[Read] {
   implicit override val typeClass: shapeless.ProductTypeClass[Read] = new shapeless.ProductTypeClass[Read] {
     import shapeless._
 
-    def emptyProduct =
+    def emptyProduct: Read[HNil] =
       Read.value(HNil)
 
-    def product[A, T <: HList](A: Read[A], T: Read[T]) =
+    def product[A, T <: HList](A: Read[A], T: Read[T]): Read[A :: T] =
       for { a <- A; t <- T } yield a :: t
 
-    def project[F, G](instance: => Read[G], to : F => G, from : G => F) =
+    def project[F, G](instance: => Read[G], to : F => G, from : G => F): Read[F] =
       instance.map(from)
   }
 }
