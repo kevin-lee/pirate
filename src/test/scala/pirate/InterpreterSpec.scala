@@ -65,7 +65,7 @@ object InterpreterSpec extends Properties {
     terminator(long(name), Flags.empty, TestB)
 
   def wrap(cmd: Parse[TestCommand]): Parse[TestWrapper] =
-    cmd.map(TestWrapper)
+    cmd.map(TestWrapper.apply)
 
   def requiredFound: Result =
     run(flag[String](short('a'), Flags.empty), List("-a", "b")) ==== "b".right

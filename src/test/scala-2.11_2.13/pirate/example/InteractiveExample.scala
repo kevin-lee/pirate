@@ -17,11 +17,11 @@ object InteractiveExample {
   , flag[Int](short('n'), description("INT"))
   ))
 
- val command = example ~ "example" ~~
-   """|An interactive example for pirate.
-      |
-      |This will allow you to experiment with different
-      |parsing options and see common usage.""".stripMargin
+  val command = example ~ "example" ~~
+    """|An interactive example for pirate.
+       |
+       |This will allow you to experiment with different
+       |parsing options and see common usage.""".stripMargin
 
   def run(args: String*): (List[String], ParseError \/ Example) =
     Interpreter.run(example, args.toList, DefaultPrefs())

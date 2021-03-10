@@ -13,7 +13,7 @@ object MthExample {
   case object Help extends Args
   case object Version extends Args
 
-  val example: Parse[Args] = (Example |*| ((
+  val example: Parse[Args] = (Example.apply |*| ((
     switch(short('s'), empty)
   , flag[String](short('c'), description("STRING"))
   , flag[Int](short('n'), description("INT"))
@@ -21,11 +21,11 @@ object MthExample {
 
   val all = switch(short('h'), empty).as[Args](Help) ||| switch(short('v'), empty).as(Version) ||| example
 
- val command = all ~ "example" ~~
-   """|An interactive example for pirate with variants.
-      |
-      |This will allow you to experiment with different
-      |parsing options and see common usage.""".stripMargin
+  val command = all ~ "example" ~~
+    """|An interactive example for pirate with variants.
+       |
+       |This will allow you to experiment with different
+       |parsing options and see common usage.""".stripMargin
 
   def run(args: String*): (List[String], ParseError \/ Args) =
     Interpreter.run(example, args.toList, DefaultPrefs())

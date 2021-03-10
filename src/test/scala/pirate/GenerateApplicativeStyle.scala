@@ -13,7 +13,7 @@ object GenerateApplicativeStyle extends App {
   def tvalues(n: Int) =
     (0 until n).map(params.apply).map(c => c.toLower).mkString(", ")
 
-def template(n: Int) = s"""
+  def template(n: Int) = s"""
   implicit class Function${n}ApplicativeStyle[${tparams(n + 1)}](fab: (${tparams(n)}) => ${params(n)}) {
     def |*|[Z[_]](${targs(n)})(implicit Z: Applicative[Z]): Z[${params(n)}] =
       ${impl(n)}
