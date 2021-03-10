@@ -1,6 +1,6 @@
 val DottyVersion = "3.0.0-RC1"
-val ProjectScalaVersion = DottyVersion
-//val ProjectScalaVersion = "2.13.3"
+//val ProjectScalaVersion = DottyVersion
+val ProjectScalaVersion = "2.13.3"
 
 ThisBuild / organization := "io.mth"
 ThisBuild / version := "1.0.0"
