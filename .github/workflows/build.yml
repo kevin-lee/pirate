@@ -1,0 +1,43 @@
+name: Build All
+
+on: [push]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        scala:
+          - { name: "Scala 2", version: "2.12.12",   binary-version: "2.12",      java-version: "adopt@1.11" }
+          - { name: "Scala 2", version: "2.13.3",    binary-version: "2.13",      java-version: "adopt@1.11" }
+          - { name: "Scala 3", version: "3.0.0-RC1", binary-version: "3.0.0-RC1", java-version: "adopt@1.11" }
+          - { name: "Scala 3", version: "3.0.0-RC2", binary-version: "3.0.0-RC2", java-version: "adopt@1.11" }
+
+    steps:
+      - uses: actions/checkout@v2.3.4
+      - uses: olafurpg/setup-scala@v10
+        with:
+          java-version: ${{ matrix.scala.java-version }}
+
+      - name: Cache SBT
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.ivy2/cache
+            ~/.cache/coursier
+            ~/.sbt
+          key: ${{ runner.os }}-sbt-${{ matrix.scala.binary-version }}-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('**/build.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-sbt-${{ matrix.scala.binary-version }}
+
+      - name: "[Push] Build All for Scala ${{ matrix.scala.version }}"
+        env:
+          CURRENT_BRANCH_NAME: ${{ github.ref }}
+        run: |
+          echo "[BEFORE]CURRENT_BRANCH_NAME=${CURRENT_BRANCH_NAME}"
+          export CURRENT_BRANCH_NAME="${CURRENT_BRANCH_NAME#refs/heads/}"
+          echo " [AFTER]CURRENT_BRANCH_NAME=${CURRENT_BRANCH_NAME}"
+          java -version
+          .github/workflows/sbt-build-all.sh ${{ matrix.scala.version }}

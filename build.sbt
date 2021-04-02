@@ -1,4 +1,4 @@
-val DottyVersion = "3.0.0-RC1"
+val DottyVersion = "3.0.0-RC2"
 //val ProjectScalaVersion = DottyVersion
 val ProjectScalaVersion = "2.13.3"
 
@@ -26,7 +26,7 @@ lazy val pirate =
   (project in file("."))
     .settings(name := "pirate")
     .settings(
-      crossScalaVersions := Seq("2.12.12", "2.13.3", DottyVersion)
+      crossScalaVersions := Seq("2.12.12", "2.13.3", "3.0.0-RC1", DottyVersion)
     , scalacOptions :=
         {
           if (isDotty.value)
@@ -126,7 +126,7 @@ lazy val pirate =
     , libraryDependencies ++= Seq(
           "org.scalaz" %% "scalaz-core" % "7.2.30"
         , "org.scalaz" %% "scalaz-effect" % "7.2.30"
-      ).map(_.withDottyCompat(scalaVersion.value)) ++ hedgehog
+      ).map(_.withDottyCompat(scalaVersion.value)) ++ hedgehog.map(_.withDottyCompat(scalaVersion.value))
     , libraryDependencies :=
         (libraryDependencies.value ++ (
           if (isDotty.value)
