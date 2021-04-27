@@ -334,6 +334,7 @@ object Laws extends LawsCompat {
       List(
         property(s"$name - $lawName: identity traverse", identityTraverse[F, Int, Int](genFInt, genIntToInt))
       , property(s"$name - $lawName: purity.option", purity[F, Option, Int](genFInt))
+      , property(s"$name - $lawName: purity.ephemeralStream", purity[F, EphemeralStream, Int](genFInt))
       , property(s"$name - $lawName: purity.lazyCollection", purity[F, LazyCollection, Int](genFInt))
       , property(s"$name - $lawName: sequential fusion", sequentialFusion[F, Option, List, Int, Int, Int](genFInt, genIntToListInt, genIntToOptionInt))
       )

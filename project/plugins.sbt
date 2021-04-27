@@ -1,1 +1,1 @@
-addSbtPlugin("ch.epfl.lamp" % "sbt-dotty" % "0.5.3")
+addSbtPlugin("com.github.duhemm" % "sbt-errors-summary" % "0.6.5")
