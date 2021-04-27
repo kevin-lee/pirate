@@ -1,8 +1,8 @@
 package pirate.spec
 
-import scalaz.EphemeralStream
+import scalaz.std.LazyListInstances
 
-trait LawsCompat {
+trait LawsCompat extends LazyListInstances {
   // TODO: Replace EphemeralStream with LazyList once LazyList support is available in Scalaz.
-  type LazyCollection[A] = EphemeralStream[A]
+  type LazyCollection[A] = LazyList[A]
 }

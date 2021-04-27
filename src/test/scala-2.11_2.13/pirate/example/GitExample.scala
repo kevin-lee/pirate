@@ -14,7 +14,7 @@ case class Git(
   exec: Option[String],
   cmd: GitCommand
 )
-trait GitCommand
+sealed trait GitCommand
 object GitVersion extends GitCommand
 object GitHtmlPath extends GitCommand
 object GitManPath extends GitCommand
@@ -63,7 +63,7 @@ object GitMain extends PirateMainIO[Git] {
   val command: Command[Git] =
     git { version ||| html ||| man ||| info ||| subcommand(add ~ "add" ~~ "Add file contents to the index") ||| subcommand(rm ~ "rm" ~~ "Remove files from the working tree and from the index") } ~ "git" ~~ "This is a demo of the git command line"
 
-  def run(a: Git) = a.cmd match {
+  def run(a: Git): IO[Unit] = a.cmd match {
     case GitVersion => IO.putStrLn("git the pirate version")
     case GitHtmlPath => IO.putStrLn("html-path")
     case GitManPath => IO.putStrLn("man-path")
