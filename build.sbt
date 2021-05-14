@@ -119,7 +119,7 @@ lazy val pirate =
 
 lazy val props = new {
 
-  val Scala3Versions = List("3.0.0-RC1", "3.0.0-RC2", "3.0.0-RC3")
+  val Scala3Versions = List("3.0.0")
   //val ProjectScalaVersion = DottyVersion
   val ProjectScalaVersion = "2.13.5"
 
@@ -136,7 +136,7 @@ lazy val props = new {
 lazy val libs = new {
 
   def hedgehog(scalaVersion: String): Seq[ModuleID] = {
-    val hedgehogVersion = if (scalaVersion == "3.0.0-RC1") "0.6.6" else "0.6.7"
+    val hedgehogVersion = "0.7.0"
     Seq(
       "qa.hedgehog" %% "hedgehog-core" % hedgehogVersion,
       "qa.hedgehog" %% "hedgehog-runner" % hedgehogVersion,
