@@ -11,8 +11,8 @@ lazy val pirate =
       Test / console / scalacOptions := Seq("-language:_", "-feature"),
       Compile / unmanagedSourceDirectories ++= {
         val sharedSourceDir = baseDirectory.value / "src/main"
-        if (isScala3_0(scalaVersion.value)) {
-          Seq(sharedSourceDir / "scala-3.0")
+        if (isScala3(scalaVersion.value)) {
+          Seq(sharedSourceDir / "scala-3")
         } else {
           CrossVersion.binaryScalaVersion(scalaVersion.value) match {
             case "2.13" =>
@@ -28,8 +28,8 @@ lazy val pirate =
       },
       Test / unmanagedSourceDirectories ++= {
         val sharedSourceDir = baseDirectory.value / "src/test"
-        if (isScala3_0(scalaVersion.value))
-          Seq(sharedSourceDir / "scala-2.13", sharedSourceDir / "scala-3.0")
+        if (isScala3(scalaVersion.value))
+          Seq(sharedSourceDir / "scala-2.13", sharedSourceDir / "scala-3")
         else if (scalaVersion.value.startsWith("2.13"))
           Seq(sharedSourceDir / "scala-2.11_2.13", sharedSourceDir / "scala-2.13")
         else
@@ -40,7 +40,7 @@ lazy val pirate =
         libs.hedgehog(scalaVersion.value).map(_.cross(CrossVersion.for3Use2_13)),
       libraryDependencies :=
         (libraryDependencies.value ++ (
-          if (isScala3_0(scalaVersion.value))
+          if (isScala3(scalaVersion.value))
             Seq.empty[ModuleID]
           else
             Seq("com.chuusai" %% "shapeless" % "2.3.3")
@@ -49,7 +49,7 @@ lazy val pirate =
 
 lazy val props = new {
 
-  final val Scala3Versions = List("3.0.0")
+  final val Scala3Versions = List("3.0.2")
   final val ProjectScalaVersion = "2.13.5"
 
 }
@@ -72,4 +72,4 @@ lazy val libs = new {
 
 }
 
-def isScala3_0(scalaVersion: String): Boolean = scalaVersion.startsWith("3.0")
+def isScala3(scalaVersion: String): Boolean = scalaVersion.startsWith("3")
