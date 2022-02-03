@@ -1,14 +1,50 @@
 ThisBuild / organization := "io.mth"
-ThisBuild / version := "1.0.0"
+ThisBuild / version      := "1.0.0"
 ThisBuild / scalaVersion := props.ProjectScalaVersion
 
 lazy val pirate =
   (project in file("."))
-    .settings(name := "pirate")
+    .settings(name := props.RepoName)
+    .aggregate(pirateScalaz)
+
+lazy val pirateScalaz = projectCommonSettings("scalaz", "scalaz", file("modules/scalaz"))
+
+lazy val props = new {
+
+  val RepoName = "pirate"
+
+  val Scala3Versions      = List("3.0.2")
+  val ProjectScalaVersion = "2.13.5"
+
+  val HedgehogVersion = "0.8.0"
+}
+
+lazy val libs = new {
+
+  lazy val hedgehog = Seq(
+    "qa.hedgehog" %% "hedgehog-core"   % props.HedgehogVersion,
+    "qa.hedgehog" %% "hedgehog-runner" % props.HedgehogVersion,
+    "qa.hedgehog" %% "hedgehog-sbt"    % props.HedgehogVersion
+  ).map(_ % Test)
+
+  lazy val scalaz: Seq[ModuleID] = Seq(
+    "org.scalaz" %% "scalaz-core"   % "7.2.31",
+    "org.scalaz" %% "scalaz-effect" % "7.2.31"
+  )
+
+}
+
+def isScala3(scalaVersion: String): Boolean = scalaVersion.startsWith("3")
+
+def prefixedProjectName(name: String) = s"${props.RepoName}${if (name.isEmpty) "" else s"-$name"}"
+
+def projectCommonSettings(id: String, projectName: String, file: File): Project =
+  Project(id, file)
     .settings(
-      crossScalaVersions := List("2.12.13", "2.13.5") ++ props.Scala3Versions,
+      name                              := prefixedProjectName(projectName),
+      crossScalaVersions                := List("2.12.13", "2.13.5") ++ props.Scala3Versions,
       Compile / console / scalacOptions := Seq("-language:_", "-feature"),
-      Test / console / scalacOptions := Seq("-language:_", "-feature"),
+      Test / console / scalacOptions    := Seq("-language:_", "-feature"),
       Compile / unmanagedSourceDirectories ++= {
         val sharedSourceDir = baseDirectory.value / "src/main"
         if (isScala3(scalaVersion.value)) {
@@ -37,8 +73,8 @@ lazy val pirate =
       },
       testFrameworks ++= Seq(TestFramework("hedgehog.sbt.Framework")),
       libraryDependencies ++= libs.scalaz.map(_.cross(CrossVersion.for3Use2_13)) ++
-        libs.hedgehog(scalaVersion.value).map(_.cross(CrossVersion.for3Use2_13)),
-      libraryDependencies :=
+        libs.hedgehog,
+      libraryDependencies               :=
         (libraryDependencies.value ++ (
           if (isScala3(scalaVersion.value))
             Seq.empty[ModuleID]
@@ -46,30 +82,3 @@ lazy val pirate =
             Seq("com.chuusai" %% "shapeless" % "2.3.3")
         )).distinct,
     )
-
-lazy val props = new {
-
-  final val Scala3Versions = List("3.0.2")
-  final val ProjectScalaVersion = "2.13.5"
-
-}
-
-lazy val libs = new {
-
-  def hedgehog(scalaVersion: String): Seq[ModuleID] = {
-    val hedgehogVersion = "0.7.0"
-    Seq(
-      "qa.hedgehog" %% "hedgehog-core" % hedgehogVersion,
-      "qa.hedgehog" %% "hedgehog-runner" % hedgehogVersion,
-      "qa.hedgehog" %% "hedgehog-sbt" % hedgehogVersion
-    ).map(_ % Test)
-  }
-
-  lazy val scalaz: Seq[ModuleID] = Seq(
-    "org.scalaz" %% "scalaz-core" % "7.2.31",
-    "org.scalaz" %% "scalaz-effect" % "7.2.31"
-  )
-
-}
-
-def isScala3(scalaVersion: String): Boolean = scalaVersion.startsWith("3")
