@@ -1,5 +1,5 @@
 #!/bin/sh -eu
 
-./sbt -Dsbt.log.noformat=true "; clean; test-only -- console; +publish;  echo-version"
+./sbt -Dsbt.log.noformat=true "; clean; testOnly -- console; +package"
 
-./src/test/bin/run
+./modules/scalaz/src/test/bin/run
