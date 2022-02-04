@@ -12,12 +12,16 @@ trait Runners {
 
   def runWithExit[A](args: List[String], command: Command[A], prefs: Prefs): IO[ExitCode \/ A] =
     Interpreter.run(command.parse, args, prefs) match {
-      case (ctx, -\/(e)) => IO(
-        Usage.printError(command, ctx, e, prefs).fold(
-          l => {l.foreach(Console.err.println); ExitCode.failure(1)},
-          l => {l.foreach(Console.out.println); ExitCode.success}
-        ).left
-      )
+      case (ctx, -\/(e)) =>
+        IO(
+          Usage
+            .printError(command, ctx, e, prefs)
+            .fold(
+              l => { l.foreach(Console.err.println); ExitCode.failure(1) },
+              l => { l.foreach(Console.out.println); ExitCode.success }
+            )
+            .left
+        )
       case (_, \/-(v)) =>
         IO(v.right)
     }

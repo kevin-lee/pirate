@@ -3,7 +3,7 @@
 git2() {
   # This is a shitty/slow way to run a main class, but saves us stuffing around with classpaths or assembly plugin
   ARGS="$@"
-  ./sbt ";scalaz/Test/runMain pirate.example.GitMain $ARGS"
+  ./sbt ";pirate-scalaz/Test/runMain pirate.example.GitMain $ARGS"
 }
 
 git2 --help

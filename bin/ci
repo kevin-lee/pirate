@@ -2,4 +2,4 @@
 
 ./sbt -Dsbt.log.noformat=true "; clean; testOnly -- console; +package"
 
-./modules/scalaz/src/test/bin/run
+./modules/pirate-scalaz/src/test/bin/run

@@ -6,7 +6,12 @@ import scalaz.{Name => _, _}, Scalaz._
 
 object Usage {
 
-  def printError[A](command: Command[A], ctx: List[String], error: ParseError, mode: Prefs): List[String] \/ List[String] = {
+  def printError[A](
+    command: Command[A],
+    ctx: List[String],
+    error: ParseError,
+    mode: Prefs
+  ): List[String] \/ List[String] = {
     def printUsageWhenSet: List[String] = if (mode.usageOnError) Usage.print(command, ctx, mode) :: Nil else Nil
     error match {
       case ParseErrorShowHelpText(s) =>
@@ -29,16 +34,23 @@ object Usage {
   def print[A](command: Command[A], context: List[String], mode: Prefs): String = context match {
     case Nil => Render.infos(command.name, command.description, tree(command.parse), mode)
     case x :: xs =>
-      Infos(tree(command.parse).flatten).commands.find(c => c.name === x).map {
-        sub => print(Command(command.name + " " + sub.name, sub.description, sub.parse), xs, mode)
-      }.getOrElse("Invalid subcommand")
+      Infos(tree(command.parse).flatten)
+        .commands
+        .find(c => c.name === x)
+        .map { sub =>
+          print(Command(command.name + " " + sub.name, sub.description, sub.parse), xs, mode)
+        }
+        .getOrElse("Invalid subcommand")
   }
 
   def tree[A](parse: Parse[A]): ParseTree[Info] =
-    ParseTraversal.treeTraverse(parse, new TreeTraverseF[Info] {
-      def run[X](info: OptHelpInfo, p: Parser[X]): Info =
-        flags(p, info)
-    })
+    ParseTraversal.treeTraverse(
+      parse,
+      new TreeTraverseF[Info] {
+        def run[X](info: OptHelpInfo, p: Parser[X]): Info =
+          flags(p, info)
+      }
+    )
 
   def flags[X](p: Parser[X], info: OptHelpInfo): Info = p match {
     case SwitchParser(flag, meta, a) =>
@@ -52,7 +64,7 @@ object Usage {
   }
 
   def invalid(arg: String, isOption: Boolean): String = isOption match {
-    case true  => s"Invalid option `${arg}`"
+    case true => s"Invalid option `${arg}`"
     case false => s"Invalid argument `${arg}`"
   }
 
@@ -69,11 +81,11 @@ object Render {
 
   case class info(name: String, description: Option[String], tree: ParseTree[Info], mode: Prefs) {
     val flagspace = space(mode.flagIndent)
-    val i = Infos(tree.flatten)
+    val i         = Infos(tree.flatten)
 
     def synopsis = {
       def synposisLine(t: ParseTree[Info]) =
-        s"${flagspace}${wrap(name,mode.flagIndent)(foldTree(t), mode.width - name.length, name.length + mode.flagIndent + 1)}"
+        s"${flagspace}${wrap(name, mode.flagIndent)(foldTree(t), mode.width - name.length, name.length + mode.flagIndent + 1)}"
       if (mode.condenseSynopsis)
         "[OPTIONS] " + i.arguments.map(argx).mkString(" ")
       else {
@@ -90,27 +102,32 @@ object Render {
     def foldTree(x: ParseTree[Info]): String = x match {
       case ParseTreeLeaf(value) => anyInfo(value)
       case ParseTreeAp(children) => children.map(foldTree).mkString(" ")
-      case ParseTreeAlt(children) => children.filterNot(_.flatten.isEmpty).map(foldTree) match {
-        case l  :: Nil => l
-        case ls        => "(" + ls.mkString(" | ") + ")"
-      }
+      case ParseTreeAlt(children) =>
+        children.filterNot(_.flatten.isEmpty).map(foldTree) match {
+          case l :: Nil => l
+          case ls => "(" + ls.mkString(" | ") + ")"
+        }
     }
 
     def anyInfo(i: Info): String = i match {
-      case f: SwitchInfo   => flagO(f.flag) |> mDfault(f.dfault)
-      case o: FlagInfo     => option(o.flag, o.meta) |> mDfault(o.dfault)
+      case f: SwitchInfo => flagO(f.flag) |> mDfault(f.dfault)
+      case o: FlagInfo => option(o.flag, o.meta) |> mDfault(o.dfault)
       case a: ArgumentInfo => argx(a) |> mDfault(a.dfault)
-      case c: CommandInfo  => c.name + " ARGS..."
+      case c: CommandInfo => c.name + " ARGS..."
     }
 
     def argx(a: ArgumentInfo): String =
-      a.meta.cata(x => x , "ARG") ++ { if (a.multi) "..." else "" }
+      a.meta.cata(x => x, "ARG") ++ { if (a.multi) "..." else "" }
 
     def flaginfo(f: SwitchInfo): String =
       wrap(flag(f.flag), mode.flagIndent)(f.description.getOrElse(""), mode.width - mode.descIndent, mode.descIndent)
 
     def optioninfo(o: FlagInfo): String =
-      wrap(option(o.flag, o.meta), mode.flagIndent)(o.description.getOrElse(""), mode.width - mode.descIndent, mode.descIndent)
+      wrap(option(o.flag, o.meta), mode.flagIndent)(
+        o.description.getOrElse(""),
+        mode.width - mode.descIndent,
+        mode.descIndent
+      )
 
     def argumentinfo(a: ArgumentInfo): String =
       wrap(argx(a), mode.flagIndent)(a.description.getOrElse(""), mode.width - mode.descIndent, mode.descIndent)
@@ -168,21 +185,21 @@ object Render {
           |""".stripMargin
 
     def missing: String =
-      s"""|${wrap("Missing parameters:",0)(synopsis, 0, 18)}
+      s"""|${wrap("Missing parameters:", 0)(synopsis, 0, 18)}
           |""".stripMargin
   }
 }
 
-
 case class Infos(l: List[Info]) {
-  def switches  = l.collect { case a: SwitchInfo   => a }
-  def flags     = l.collect { case a: FlagInfo     => a }
+  def switches  = l.collect { case a: SwitchInfo => a }
+  def flags     = l.collect { case a: FlagInfo => a }
   def arguments = l.collect { case a: ArgumentInfo => a }
-  def commands  = l.collect { case a: CommandInfo  => a }
+  def commands  = l.collect { case a: CommandInfo => a }
 }
 
 sealed trait Info
 case class SwitchInfo(flag: Name, description: Option[String], multi: Boolean, dfault: Boolean) extends Info
-case class FlagInfo(flag: Name, description: Option[String], meta: Option[String], multi: Boolean, dfault: Boolean) extends Info
+case class FlagInfo(flag: Name, description: Option[String], meta: Option[String], multi: Boolean, dfault: Boolean)
+    extends Info
 case class ArgumentInfo(meta: Option[String], description: Option[String], multi: Boolean, dfault: Boolean) extends Info
 case class CommandInfo(name: String, description: Option[String], parse: Parse[Unit]) extends Info

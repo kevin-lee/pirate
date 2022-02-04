@@ -22,10 +22,16 @@ case class NondetT[F[_], A](runNondetT: ListT[CutT[F]#l, A]) {
     } yield r))
 
   def disamb(implicit F: Monad[F]): F[Option[A]] =
-    runNondetT.take(1).run.run(false).map(x => x._2 match {
-      case h :: Nil => Some(h)
-      case _ => None
-    })
+    runNondetT
+      .take(1)
+      .run
+      .run(false)
+      .map(x =>
+        x._2 match {
+          case h :: Nil => Some(h)
+          case _ => None
+        }
+      )
 }
 
 object NondetT {
@@ -68,10 +74,12 @@ object NondetT {
   def lift[F[_]: Monad, A](f: F[A]): NondetT[F, A] =
     NondetT[F, A](ListT.lift[CutT[F]#l, A](f.liftM[Cut]))
 
-  implicit def NondetTMonad[F[_]: Monad]: Monad[({ type l[a] = NondetT[F, a] })#l] with MonadPlus[({ type l[a] = NondetT[F, a] })#l] = new Monad[({ type l[a] = NondetT[F, a] })#l] with MonadPlus[({ type l[a] = NondetT[F, a] })#l] {
-    def point[A](a: => A) = singleton[F, A](a)
-    def bind[A, B](a: NondetT[F, A])(f: A => NondetT[F, B]) = a flatMap f
-    def empty[A] = nil[F, A]
-    def plus[A](a: NondetT[F, A], b: => NondetT[F, A]) = NondetT(a.runNondetT ++ b.runNondetT)
-  }
+  implicit def NondetTMonad[F[_]: Monad]
+    : Monad[({ type l[a] = NondetT[F, a] })#l] with MonadPlus[({ type l[a] = NondetT[F, a] })#l] =
+    new Monad[({ type l[a] = NondetT[F, a] })#l] with MonadPlus[({ type l[a] = NondetT[F, a] })#l] {
+      def point[A](a: => A)                                   = singleton[F, A](a)
+      def bind[A, B](a: NondetT[F, A])(f: A => NondetT[F, B]) = a flatMap f
+      def empty[A]                                            = nil[F, A]
+      def plus[A](a: NondetT[F, A], b: => NondetT[F, A])      = NondetT(a.runNondetT ++ b.runNondetT)
+    }
 }

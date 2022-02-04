@@ -9,15 +9,15 @@ object Metavar {
 
   def rewriteParse[A](p: Parse[A]): Parse[A] =
     p match {
-      case p@ValueParse(_) =>
+      case p @ ValueParse(_) =>
         p
       case ParserParse(pr) =>
         ParserParse(pr match {
-          case p@SwitchParser(_, _, _) =>
+          case p @ SwitchParser(_, _, _) =>
             p.copy(meta = rewriteMetaFromLongName(p.flag, p.meta))
-          case p@FlagParser(_, _, _) =>
+          case p @ FlagParser(_, _, _) =>
             p.copy(meta = rewriteMetaFromLongName(p.flag, p.meta))
-          case p@ArgumentParser(_, _) =>
+          case p @ ArgumentParser(_, _) =>
             p
           case CommandParser(sub) =>
             CommandParser(rewriteCommand(sub))

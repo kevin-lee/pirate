@@ -10,11 +10,23 @@ trait Flags {
 
   // A simple parser to show the help text without disrupting the main parser
   def helper =
-    abort(both('h', "help"), description("Prints the synopsis and a list of options and arguments."), ShowHelpText(None))
+    abort(
+      both('h', "help"),
+      description("Prints the synopsis and a list of options and arguments."),
+      ShowHelpText(None)
+    )
 
   // A helper which optionally shows the help text for subcommands.
   def helperX: Parse[Option[Unit]] =
-    parse(FlagParser(both('h', "help"), description("Prints the synopsis and a list of the most commonly used commands. If a subcommand is named this option will show the synposis for said command."), Read.string.option.flatMap(s => Read.error[Unit](ShowHelpText(s))))).option
+    parse(
+      FlagParser(
+        both('h', "help"),
+        description(
+          "Prints the synopsis and a list of the most commonly used commands. If a subcommand is named this option will show the synposis for said command."
+        ),
+        Read.string.option.flatMap(s => Read.error[Unit](ShowHelpText(s)))
+      )
+    ).option
 
   // A simple parser to show the application version
   def version(v: String): Parse[Option[Unit]] =
@@ -46,17 +58,22 @@ trait Flags {
 
   def empty: Metadata =
     Metadata(None, None, true)
+
   def hidden: Metadata =
     Metadata(None, None, false)
+
   def metavar(d: String): Metadata =
     Metadata(None, d.some, true)
+
   def description(d: String): Metadata =
     Metadata(d.some, None, true)
 
   def short(s: Char): Name =
     ShortName(s)
+
   def long(l: String): Name =
     LongName(l)
+
   def both(s: Char, l: String): Name =
     BothName(s, l)
 }

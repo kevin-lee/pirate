@@ -13,26 +13,25 @@ import pirate.spec.Gens
 object ReadSpec extends Properties {
 
   override def tests: List[Test] = List(
-      property("Char", symmetric(Gen.unicode))
-    , property("String", symmetric(Gens.genUnicodeString(0, 50)))
-    , property("Short", symmetric(Gen.short(Range.linear(0, 10))))
-    , property("Int", symmetric(Gen.int(Range.linear(Int.MinValue, Int.MaxValue))))
-    , property("Long", symmetric(Gen.long(Range.linear(Long.MinValue, Long.MaxValue))))
-    , property("Double", symmetric(Gen.double(Range.linearFrac(Double.MinValue, Double.MaxValue))))
-    , property("Boolean", symmetric(Gen.boolean))
-    , property("BigInt", symmetric(Gen.long(Range.linear(Long.MinValue, Long.MaxValue)).map(BigInt.apply)))
-    , exampleTest("File example", file)
-    , exampleTest("URI example", uri)
-    , exampleTest("URL example", url)
-    , property("Char doesn't parse strings", charerr)
-    , property("Numeric doesn't parse strings", numericerr)
-    , property("Returning none will fail", optionFail)
-    , property("Returning some will pass", optionPass)
-    , property("Returning left will fail", eitherFail)
-    , property("Returning right will pass", eitherPass)
-    , exampleTest("Witness (compilation is sufficient)", Result.success)
+    property("Char", symmetric(Gen.unicode)),
+    property("String", symmetric(Gens.genUnicodeString(0, 50))),
+    property("Short", symmetric(Gen.short(Range.linear(0, 10)))),
+    property("Int", symmetric(Gen.int(Range.linear(Int.MinValue, Int.MaxValue)))),
+    property("Long", symmetric(Gen.long(Range.linear(Long.MinValue, Long.MaxValue)))),
+    property("Double", symmetric(Gen.double(Range.linearFrac(Double.MinValue, Double.MaxValue)))),
+    property("Boolean", symmetric(Gen.boolean)),
+    property("BigInt", symmetric(Gen.long(Range.linear(Long.MinValue, Long.MaxValue)).map(BigInt.apply))),
+    exampleTest("File example", file),
+    exampleTest("URI example", uri),
+    exampleTest("URL example", url),
+    property("Char doesn't parse strings", charerr),
+    property("Numeric doesn't parse strings", numericerr),
+    property("Returning none will fail", optionFail),
+    property("Returning some will pass", optionPass),
+    property("Returning left will fail", eitherFail),
+    property("Returning right will pass", eitherPass),
+    exampleTest("Witness (compilation is sufficient)", Result.success)
   )
-
 
   def file: Result =
     Read.parse[File](List("some/file")).toOption ==== Some(new File("some/file"))
@@ -47,8 +46,8 @@ object ReadSpec extends Properties {
     c <- Gen.unicode.log("c")
     d <- Gen.unicode.log("d")
     s <- Gens.genUnicodeString(0, 50).log("s")
-  }  yield {
-    Read.parse[Char](List(c.toString +  d.toString + s)).toOption ==== None
+  } yield {
+    Read.parse[Char](List(c.toString + d.toString + s)).toOption ==== None
   }
 
   def numericerr: Property = for {
