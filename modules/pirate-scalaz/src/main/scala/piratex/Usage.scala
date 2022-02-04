@@ -6,8 +6,8 @@ object Usage {
 
   def render[A](parent: List[String], cmd: Command[A]): List[String] = {
     List(
-      List(pirate.Usage.print(cmd.copy(name = (cmd.name :: parent).reverse.mkString(" ")), Nil, DefaultPrefs()))
-    , renderParse(cmd.name :: parent, cmd.parse)
+      List(pirate.Usage.print(cmd.copy(name = (cmd.name :: parent).reverse.mkString(" ")), Nil, DefaultPrefs())),
+      renderParse(cmd.name :: parent, cmd.parse)
     ).flatten
   }
 

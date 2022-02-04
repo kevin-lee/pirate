@@ -8,14 +8,14 @@ import pirate.spec.Gens
 object TextSpec extends Properties {
 
   override def tests: List[Test] = List(
-      property("all spaces", spaces)
-    , property("correct length", length)
-    , property("wrap no longer than width", width)
-    , property("wrap no longer than width + indent", indent)
-    , property("handle negative widths", negativeWidth)
-    , property("never lose content", safe)
-    , property("text with new lines has proper gutter", gutter)
-    )
+    property("all spaces", spaces),
+    property("correct length", length),
+    property("wrap no longer than width", width),
+    property("wrap no longer than width + indent", indent),
+    property("handle negative widths", negativeWidth),
+    property("never lose content", safe),
+    property("text with new lines has proper gutter", gutter)
+  )
 
   import Text._
 
@@ -74,7 +74,8 @@ object TextSpec extends Properties {
     wrap("", 0)(ls.value.map(_.value).mkString("\n"), 80, 10)
       .split('\n')
       .map(_.take(10))
-      .mkString("").trim ==== ""
+      .mkString("")
+      .trim ==== ""
   }
 
   def drains(orig: String, modded: String): Boolean = {

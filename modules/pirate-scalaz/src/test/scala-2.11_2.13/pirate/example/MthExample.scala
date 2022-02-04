@@ -13,11 +13,13 @@ object MthExample {
   case object Help extends Args
   case object Version extends Args
 
-  val example: Parse[Args] = (Example |*| ((
-    switch(short('s'), empty)
-  , flag[String](short('c'), description("STRING"))
-  , flag[Int](short('n'), description("INT"))
-  ))).map(x => x)
+  val example: Parse[Args] = (Example |*| (
+    (
+      switch(short('s'), empty),
+      flag[String](short('c'), description("STRING")),
+      flag[Int](short('n'), description("INT"))
+    )
+  )).map(x => x)
 
   val all = switch(short('h'), empty).as[Args](Help) ||| switch(short('v'), empty).as(Version) ||| example
 
@@ -43,6 +45,6 @@ object MthExample {
 
     println(run("-n", "21", "-s", "-c", "hello"))
 
-    println(Usage.print(command, Nil,DefaultPrefs()))
+    println(Usage.print(command, Nil, DefaultPrefs()))
   }
 }

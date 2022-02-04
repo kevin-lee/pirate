@@ -14,9 +14,9 @@ sealed trait Parser[A] {
       CommandParser(sub.copy(parse = sub.parse.map(f)))
   }
 
-  def isArg: Boolean = this match {
+  def isArg: Boolean     = this match {
     case ArgumentParser(_, _) => true
-    case _                    => false
+    case _ => false
   }
   def isVisible: Boolean = this match {
     case SwitchParser(_, meta, _) => meta.visible

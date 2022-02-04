@@ -1,9 +1,8 @@
 package pirate
 
-/**
- * Prefs provides configuration options for generating
- * a usage string as well as parser behaviour.
- */
+/** Prefs provides configuration options for generating
+  * a usage string as well as parser behaviour.
+  */
 case class Prefs(
   backtrack: Boolean,
   separateTopLevels: Boolean,
@@ -14,12 +13,11 @@ case class Prefs(
   width: Int
 )
 
-/**
- * Default preferences
- *  - Explicit synopsis.
- *  - 8/16 indents
- *  - 80 width
- */
+/** Default preferences
+  *  - Explicit synopsis.
+  *  - 8/16 indents
+  *  - 80 width
+  */
 object DefaultPrefs {
   def apply() = Prefs(
     backtrack = true,

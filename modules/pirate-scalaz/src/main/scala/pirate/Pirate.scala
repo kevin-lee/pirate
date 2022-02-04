@@ -1,6 +1,3 @@
 package pirate
 
-object Pirate
-  extends Flags
-  with Runners
-  with ApplicativeStyle
+object Pirate extends Flags with Runners with ApplicativeStyle

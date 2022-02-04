@@ -18,29 +18,43 @@ case class FieldCut(list: String, suppress: Boolean, delimiter: Char, files: Lis
 // FIX support explicit read, i.e. 'list'
 // FIX descriptions on fields
 object CutMain extends PirateMainIO[Cut] {
-  val byte: Parse[Cut] = (ByteCut |*| ((
-    flag[String](short('b'), metavar("list") |+| description("The list specifies byte positions."))
-  , switch(short('n'), description("Do not split multi-byte characters.")).not
-  , arguments[File](metavar("file"))
-  ))).map(x => x)
+  val byte: Parse[Cut] = (ByteCut |*| (
+    (
+      flag[String](short('b'), metavar("list") |+| description("The list specifies byte positions.")),
+      switch(short('n'), description("Do not split multi-byte characters.")).not,
+      arguments[File](metavar("file"))
+    )
+  )).map(x => x)
 
-  val char: Parse[Cut] = (CharCut |*| ((
-    flag[String](short('c'), metavar("list") |+| description("The list specifies character positions."))
-  , arguments[File](metavar("file"))
-  ))).map(x => x)
+  val char: Parse[Cut] = (CharCut |*| (
+    (
+      flag[String](short('c'), metavar("list") |+| description("The list specifies character positions.")),
+      arguments[File](metavar("file"))
+    )
+  )).map(x => x)
 
-  val field: Parse[Cut] = (FieldCut |*| ((
-    flag[String](short('f'), metavar("list") |+| description("The list specifies fields, separated in the input by the field delimiter character (see the -d option.)  Output fields are separated by a single occurrence of the field delimiter character."))
-  , switch(short('s'), description("Suppress lines with no field delimiter characters."))
-  , flag[Char](both('d', "delimiter"), metavar("delim") |+| description("Use delim as the field delimiter character instead of the tab character.")).default('\t')
-  , arguments[File](metavar("file"))
-  ))).map(x => x)
+  val field: Parse[Cut] = (FieldCut |*| (
+    (
+      flag[String](
+        short('f'),
+        metavar("list") |+| description(
+          "The list specifies fields, separated in the input by the field delimiter character (see the -d option.)  Output fields are separated by a single occurrence of the field delimiter character."
+        )
+      ),
+      switch(short('s'), description("Suppress lines with no field delimiter characters.")),
+      flag[Char](
+        both('d', "delimiter"),
+        metavar("delim") |+| description("Use delim as the field delimiter character instead of the tab character.")
+      ).default('\t'),
+      arguments[File](metavar("file"))
+    )
+  )).map(x => x)
 
   override def prefs = DefaultPrefs().copy(separateTopLevels = true)
 
   def command: Command[Cut] =
     (byte ||| char ||| field) ~ "cut" ~~
-     "This is a demo of the unix cut utility"
+      "This is a demo of the unix cut utility"
 
   def run(c: Cut) = c match {
     case ByteCut(list, split, files) =>
@@ -48,27 +62,29 @@ object CutMain extends PirateMainIO[Cut] {
     case CharCut(list, files) =>
       IO.putStrLn(s"""cut -c $list $files""")
     case FieldCut(list, suppress, delimiter, files) =>
-      IO.putStrLn(s"""cut -f $list ${if (suppress) "" else "-s "}${if (delimiter == '\t') "" else "-d '" + delimiter + "'"}$files""")
+      IO.putStrLn(s"""cut -f $list ${if (suppress) "" else "-s "}${if (delimiter == '\t') ""
+      else "-d '" + delimiter + "'"}$files""")
   }
 }
 
 object CutExample extends Properties {
 
   override def tests: List[Test] = List(
-      //  Cut Examples
-      exampleTest("cat -b 1 one", byte)
-    , exampleTest("cut -b 2 -n two", noSplit)
-    , exampleTest("cut -c 3 three", char)
-    , exampleTest("cut -f 4 four", field)
-    , exampleTest("cut -f 5 -s five", supress)
-    , exampleTest("cut -f 6 -d x six", delim)
-    , exampleTest("cut -f 7 -d x -s seven", delimSupress)
-    , exampleTest("cut -f 7 -s -d x seven", supressDelim)
-    , exampleTest("cut -b 1 many files", manyFiles)
-    , exampleTest("cut with invalid args fails", invalid)
+    //  Cut Examples
+    exampleTest("cat -b 1 one", byte),
+    exampleTest("cut -b 2 -n two", noSplit),
+    exampleTest("cut -c 3 three", char),
+    exampleTest("cut -f 4 four", field),
+    exampleTest("cut -f 5 -s five", supress),
+    exampleTest("cut -f 6 -d x six", delim),
+    exampleTest("cut -f 7 -d x -s seven", delimSupress),
+    exampleTest("cut -f 7 -s -d x seven", supressDelim),
+    exampleTest("cut -b 1 many files", manyFiles),
+    exampleTest("cut with invalid args fails", invalid)
     //  Cut Checks
-    , exampleTest("Name is set", CutMain.command.name ==== "cut")
-    , exampleTest("Description is set", CutMain.command.description ==== Some("This is a demo of the unix cut utility"))
+    ,
+    exampleTest("Name is set", CutMain.command.name ==== "cut"),
+    exampleTest("Description is set", CutMain.command.description ==== Some("This is a demo of the unix cut utility"))
   )
 
   def run(args: String*): ParseError \/ Cut =
