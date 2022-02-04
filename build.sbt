@@ -7,7 +7,7 @@ lazy val pirate =
     .settings(name := props.RepoName)
     .aggregate(pirateScalaz)
 
-lazy val pirateScalaz = projectCommonSettings("scalaz", "scalaz", file("modules/scalaz"))
+lazy val pirateScalaz = projectCommonSettings("scalaz")
 
 lazy val props = new {
 
@@ -38,13 +38,14 @@ def isScala3(scalaVersion: String): Boolean = scalaVersion.startsWith("3")
 
 def prefixedProjectName(name: String) = s"${props.RepoName}${if (name.isEmpty) "" else s"-$name"}"
 
-def projectCommonSettings(id: String, projectName: String, file: File): Project =
-  Project(id, file)
+def projectCommonSettings(projectName: String): Project = {
+  val prefixedName = prefixedProjectName(projectName)
+  Project(prefixedName, file(s"modules/$prefixedName"))
     .settings(
-      name                              := prefixedProjectName(projectName),
-      crossScalaVersions                := List("2.12.13", "2.13.5") ++ props.Scala3Versions,
+      name := prefixedName,
+      crossScalaVersions := List("2.12.13", "2.13.5") ++ props.Scala3Versions,
       Compile / console / scalacOptions := Seq("-language:_", "-feature"),
-      Test / console / scalacOptions    := Seq("-language:_", "-feature"),
+      Test / console / scalacOptions := Seq("-language:_", "-feature"),
       Compile / unmanagedSourceDirectories ++= {
         val sharedSourceDir = baseDirectory.value / "src/main"
         if (isScala3(scalaVersion.value)) {
@@ -74,11 +75,12 @@ def projectCommonSettings(id: String, projectName: String, file: File): Project 
       testFrameworks ++= Seq(TestFramework("hedgehog.sbt.Framework")),
       libraryDependencies ++= libs.scalaz.map(_.cross(CrossVersion.for3Use2_13)) ++
         libs.hedgehog,
-      libraryDependencies               :=
+      libraryDependencies :=
         (libraryDependencies.value ++ (
           if (isScala3(scalaVersion.value))
             Seq.empty[ModuleID]
           else
             Seq("com.chuusai" %% "shapeless" % "2.3.3")
-        )).distinct,
+          )).distinct,
     )
+}
