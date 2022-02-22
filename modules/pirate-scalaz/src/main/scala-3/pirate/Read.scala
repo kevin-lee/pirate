@@ -63,7 +63,7 @@ case class Read[A](read: List[String] => ReadError \/ (List[String], A)) {
 
 object Read {
   def of[A: Read]: Read[A] =
-    implicitly[Read[A]]
+    summon[Read[A]]
 
   def read[A: Read](in: List[String]): ReadError \/ (List[String], A) =
     of[A].read(in)
@@ -126,57 +126,57 @@ object Read {
   def eitherRead[A](f: String => String \/ A): Read[A] =
     string.flatMap(s => f(s).fold(e => error(ReadErrorInvalidType(s, e)), value(_)))
 
-  implicit val ReadChar: Read[Char] =
+  given ReadChar: Read[Char] =
     optionRead(s => (s.length == 1).option(s.charAt(0)), "Char")
 
-  implicit val ReadString: Read[String] =
+  given ReadString: Read[String] =
     string
 
-  implicit val ReadShort: Read[Short] =
+  given ReadShort: Read[Short] =
     tryRead(_.toShort, "Short")
 
-  implicit val ReadInt: Read[Int] =
+  given ReadInt: Read[Int] =
     tryRead(_.toInt, "Int")
 
-  implicit val ReadLong: Read[Long] =
+  given ReadLong: Read[Long] =
     tryRead(_.toLong, "Long")
 
-  implicit val ReadDouble: Read[Double] =
+  given ReadDouble: Read[Double] =
     tryRead(_.toDouble, "Double")
 
-  implicit val ReadBoolean: Read[Boolean] =
+  given ReadBoolean: Read[Boolean] =
     tryRead(_.toBoolean, "Boolean")
 
-  implicit val ReadBigInt: Read[BigInt] =
+  given ReadBigInt: Read[BigInt] =
     tryRead(BigInt(_), "BigInt")
 
-  implicit val ReadFile: Read[java.io.File] =
+  given ReadFile: Read[java.io.File] =
     string map (new java.io.File(_))
 
-  implicit val ReadURI: Read[java.net.URI] =
+  given ReadURI: Read[java.net.URI] =
     tryRead(new java.net.URI(_), "URI")
 
-  implicit val ReadURL: Read[java.net.URL] =
+  given ReadURL: Read[java.net.URL] =
     tryRead(new java.net.URL(_), "URL")
 
-  implicit def ReadOption[A: Read]: Read[Option[A]] =
+  given ReadOption[A: Read]: Read[Option[A]] =
     of[A].option
 
-  implicit def ReadMonad: Monad[Read] with MonadPlus[Read] = new Monad[Read] with MonadPlus[Read] {
+  given ReadMonad: Monad[Read] with MonadPlus[Read] with {
     def point[A](a: => A)                       = value(a)
     def bind[A, B](p: Read[A])(f: A => Read[B]) = p flatMap f
     def empty[A]                                = error[A](ReadErrorEmpty)
     def plus[A](p1: Read[A], p2: => Read[A])    = p1 ||| p2
   }
 
-  implicit def ReadMonoid[A]: Monoid[Read[A]] = new Monoid[Read[A]] {
+  given ReadMonoid[A]: Monoid[Read[A]] with {
     def zero                                         = error(ReadErrorEmpty)
     def append(p1: Read[A], p2: => Read[A]): Read[A] = p1 ||| p2
   }
 
-  implicit def readEmptyTuple: Read[EmptyTuple] = Read.value(EmptyTuple)
+  given readEmptyTuple: Read[EmptyTuple] = Read.value(EmptyTuple)
 
-  implicit def readTuple[A: Read, T <: Tuple: Read]: Read[A *: T] = for {
+  given readTuple[A: Read, T <: Tuple: Read]: Read[A *: T] = for {
     a <- summon[Read[A]]
     t <- summon[Read[T]]
   } yield a *: t
