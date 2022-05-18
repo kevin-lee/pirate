@@ -14,7 +14,7 @@ lazy val props = new {
   val RepoName = "pirate"
 
   val Scala3Versions      = List("3.0.2")
-  val ProjectScalaVersion = "2.13.5"
+  val ProjectScalaVersion = "2.13.8"
 
   val HedgehogVersion = "0.8.0"
 }
@@ -43,7 +43,7 @@ def projectCommonSettings(projectName: String): Project = {
   Project(prefixedName, file(s"modules/$prefixedName"))
     .settings(
       name := prefixedName,
-      crossScalaVersions := List("2.12.13", "2.13.5") ++ props.Scala3Versions,
+      crossScalaVersions := List("2.12.13", "2.13.8") ++ props.Scala3Versions,
       Compile / console / scalacOptions := Seq("-language:_", "-feature"),
       Test / console / scalacOptions := Seq("-language:_", "-feature"),
       Compile / unmanagedSourceDirectories ++= {
