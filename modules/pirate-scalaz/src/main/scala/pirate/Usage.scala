@@ -53,13 +53,13 @@ object Usage {
     )
 
   def flags[X](p: Parser[X], info: OptHelpInfo): Info = p match {
-    case SwitchParser(flag, meta, a) =>
+    case SwitchParser(flag, meta, a @ _) =>
       SwitchInfo(flag, meta.description, info.multi, info.dfault)
-    case FlagParser(flag, meta, p) =>
+    case FlagParser(flag, meta, p @ _) =>
       FlagInfo(flag, meta.description, meta.metavar, info.multi, info.dfault)
     case CommandParser(sub) =>
       CommandInfo(sub.name, sub.description, sub.parse.map(_ => ()))
-    case ArgumentParser(meta, p) =>
+    case ArgumentParser(meta, p @ _) =>
       ArgumentInfo(meta.metavar, meta.description, info.multi, info.dfault)
   }
 

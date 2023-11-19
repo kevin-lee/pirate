@@ -28,7 +28,7 @@ object InteractiveExample {
   def run(args: String*): (List[String], ParseError \/ Example) =
     Interpreter.run(example, args.toList, DefaultPrefs())
 
-  def main(unused: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = {
     println(run("-s", "-c", "hello", "-n", "12"))
 
     println(run("-c", "hello", "-n", "12"))

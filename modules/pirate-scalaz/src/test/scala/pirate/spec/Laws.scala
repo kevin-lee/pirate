@@ -421,7 +421,6 @@ object Laws extends LawsCompat {
     def laws[F[_]](
       name: String,
       genFInt: Gen[F[Int]],
-      genIntToInt: Gen[Int => Int]
     )(
       implicit F: PlusEmpty[F],
       ef: Equal[F[Int]]
@@ -471,7 +470,7 @@ object Laws extends LawsCompat {
     ): List[Test] = {
       val lawName = "Monad plus Law"
       monad.laws[F](name, genInt, genIntToInt, genFInt, genIntToFInt, genFIntToInt) ++
-        plusEmpty.laws[F](name, genFInt, genIntToInt) ++
+        plusEmpty.laws[F](name, genFInt) ++
         List(
           property(s"$name - $lawName: empty map", emptyMap[F, Int](genIntToInt)),
           property(s"$name - $lawName: left zero", leftZero[F, Int](genIntToFInt))

@@ -98,7 +98,7 @@ object ParseTraversal {
         case LongParsedName(s) =>
           flag.hasLong(s).option(a.pure[StateArg])
       }
-    case FlagParser(flag, meta, p) =>
+    case FlagParser(flag, meta @ _, p) =>
       w.name match {
         case ShortParsedName(c) =>
           flag
@@ -229,7 +229,7 @@ object ParseTraversal {
   def evalAp[A, B](multi: Boolean, f: Parse[B => A], k: Parse[B]): ParseTree[Info] \/ A =
     eval(multi, k) <*> eval(multi, f) match {
       case \/-(a) => a.right
-      case -\/(xs) =>
+      case -\/(xs @ _) =>
         eval(multi, f) -> eval(multi, k) match {
           case (-\/(a), -\/(b)) => ParseTreeAp(List(a, b)).left
           case (_, -\/(b)) => ParseTreeAp(List(b)).left
@@ -256,7 +256,7 @@ object ParseTraversal {
       case AltParse(p1, p2) =>
         val dfaultx = dfault || hasDefault(p1) || hasDefault(p2)
         ParseTreeAlt(List(go(multi, dfaultx, f, p1), go(multi, dfaultx, f, p2)))
-      case BindParse(k, p) =>
+      case BindParse(k @ _, p) =>
         go(true, dfault, f, p)
     }
 

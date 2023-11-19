@@ -22,7 +22,7 @@ sealed trait Parser[A] {
     case SwitchParser(_, meta, _) => meta.visible
     case FlagParser(_, meta, _) => meta.visible
     case ArgumentParser(meta, _) => meta.visible
-    case CommandParser(sub) => true
+    case CommandParser(sub @ _) => true
   }
 }
 

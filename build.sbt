@@ -16,7 +16,7 @@ lazy val props = new {
   val Scala3Versions      = List("3.0.2")
   val ProjectScalaVersion = "2.13.8"
 
-  val HedgehogVersion = "0.8.0"
+  val HedgehogVersion = "0.9.0"
 }
 
 lazy val libs = new {
@@ -28,8 +28,8 @@ lazy val libs = new {
   ).map(_ % Test)
 
   lazy val scalaz: Seq[ModuleID] = Seq(
-    "org.scalaz" %% "scalaz-core"   % "7.2.31",
-    "org.scalaz" %% "scalaz-effect" % "7.2.31"
+    "org.scalaz" %% "scalaz-core"   % "7.2.35",
+    "org.scalaz" %% "scalaz-effect" % "7.2.35"
   )
 
 }

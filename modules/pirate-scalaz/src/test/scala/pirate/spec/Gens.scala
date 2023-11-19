@@ -92,7 +92,7 @@ object Gens {
       genArgumentParser
     )
 
-  def genSwitchParser[A: Read](genA: Gen[A]): Gen[Parser[A]] =
+  def genSwitchParser[A](genA: Gen[A]): Gen[Parser[A]] =
     for {
       n    <- genName
       desc <- genUnicodeString(0, 20).option

@@ -32,7 +32,7 @@ object MthExample {
   def run(args: String*): (List[String], ParseError \/ Args) =
     Interpreter.run(example, args.toList, DefaultPrefs())
 
-  def main(unused: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = {
     println(run("-h"))
 
     println(run("-v"))
