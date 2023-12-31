@@ -23,16 +23,16 @@ object Text {
       val i  = o + w
       val nl = s.indexOf('\n', o)
       if (nl > -1 && nl < o + w) {
-        sb ++= s.substring(o, nl) ++= "\n" ++= spacer
+        val _ = sb ++= s.substring(o, nl) ++= "\n" ++= spacer
         wrapit(nl + 1, width)
       } else if (s.length <= i) {
         sb ++= s.substring(o)
         ()
       } else if (w <= 0) {
-        sb ++= s.substring(o, o + width - 1) ++= "-\n" ++= spacer
+        val _ = sb ++= s.substring(o, o + width - 1) ++= "-\n" ++= spacer
         wrapit(o + width - 1, width)
       } else if (s.charAt(i) == ' ') {
-        sb ++= s.substring(o, i) ++= "\n" ++= spacer
+        val _ = sb ++= s.substring(o, i) ++= "\n" ++= spacer
         wrapit(i + 1, width)
       } else wrapit(o, w - 1)
     }
