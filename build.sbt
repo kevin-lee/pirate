@@ -13,10 +13,10 @@ lazy val props = new {
 
   val RepoName = "pirate"
 
-  val Scala3Versions      = List("3.0.2")
-  val ProjectScalaVersion = "2.13.10"
+  val Scala3Versions      = List("3.1.3")
+  val ProjectScalaVersion = "2.13.16"
 
-  val HedgehogVersion = "0.9.0"
+  val HedgehogVersion = "0.10.1"
 }
 
 lazy val libs = new {
@@ -28,8 +28,8 @@ lazy val libs = new {
   ).map(_ % Test)
 
   lazy val scalaz: Seq[ModuleID] = Seq(
-    "org.scalaz" %% "scalaz-core"   % "7.2.35",
-    "org.scalaz" %% "scalaz-effect" % "7.2.35"
+    "org.scalaz" %% "scalaz-core"   % "7.2.36",
+    "org.scalaz" %% "scalaz-effect" % "7.2.36"
   )
 
 }
@@ -56,7 +56,10 @@ def projectCommonSettings(projectName: String): Project = {
             case "2.13" =>
               Seq(sharedSourceDir / "scala-2.11_2.13", sharedSourceDir / "scala-2.13")
 
-            case "2.11" | "2.12" =>
+            case "2.12" =>
+              Seq(sharedSourceDir / "scala-2.11_2.13", sharedSourceDir / "scala-2.13-", sharedSourceDir / "scala-2.12")
+
+            case "2.11" =>
               Seq(sharedSourceDir / "scala-2.11_2.13", sharedSourceDir / "scala-2.13-")
 
             case _ =>

@@ -157,7 +157,8 @@ object Read extends shapeless.ProductTypeClassCompanion[Read] {
     tryRead(new java.net.URI(_), "URI")
 
   implicit val ReadURL: Read[java.net.URL] =
-    tryRead(new java.net.URL(_), "URL")
+//    tryRead(new java.net.URL(_), "URL")
+    tryRead(java.net.URI.create(_).toURL, "URL")
 
   implicit def ReadOption[A: Read]: Read[Option[A]] =
     of[A].option
