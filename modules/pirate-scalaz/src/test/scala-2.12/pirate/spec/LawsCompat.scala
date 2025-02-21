@@ -3,15 +3,14 @@ package pirate.spec
 import hedgehog._
 import hedgehog.runner._
 
-import scalaz.std.LazyListInstances
+trait LawsCompat {
+  type LazyCollection[+A] = Stream[A]
 
-trait LawsCompat extends LazyListInstances {
-  // TODO: Replace EphemeralStream with LazyList once LazyList support is available in Scalaz.
-  type LazyCollection[A] = LazyList[A]
 }
 object LawsCompat extends LawsCompat {
   trait traverseCompat extends pirate.spec.LawsCommon.traverse {
     import scalaz._
+    import Scalaz._
 
     def laws[F[_]](
       name: String,

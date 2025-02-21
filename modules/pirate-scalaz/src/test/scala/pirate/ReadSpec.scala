@@ -40,7 +40,8 @@ object ReadSpec extends Properties {
     Read.parse[URI](List("http://some/file")).toOption ==== Some(new URI("http://some/file"))
 
   def url: Result =
-    Read.parse[URL](List("http://some/file")).toOption ==== Some(new URL("http://some/file"))
+//    Read.parse[URL](List("http://some/file")).toOption ==== Some(new URL("http://some/file"))
+    Read.parse[URL](List("http://some/file")).toOption ==== Some(java.net.URI.create("http://some/file").toURL)
 
   def charerr: Property = for {
     c <- Gen.unicode.log("c")
