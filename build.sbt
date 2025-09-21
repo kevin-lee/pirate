@@ -13,7 +13,7 @@ lazy val props = new {
 
   val RepoName = "pirate"
 
-  val Scala3Versions      = List("3.1.3")
+  val Scala3Versions      = List("3.3.3")
   val ProjectScalaVersion = "2.13.16"
 
   val HedgehogVersion = "0.10.1"

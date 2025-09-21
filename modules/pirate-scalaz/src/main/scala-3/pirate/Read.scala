@@ -157,7 +157,7 @@ object Read {
     tryRead(new java.net.URI(_), "URI")
 
   given ReadURL: Read[java.net.URL] =
-    tryRead(new java.net.URL(_), "URL")
+    tryRead(new java.net.URI(_).toURL, "URL")
 
   given ReadOption[A: Read]: Read[Option[A]] =
     of[A].option
